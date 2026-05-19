@@ -64,7 +64,7 @@ public class ClientCommands {
 
     public static void executeScript(Request request, DatagramSocket socket, InetAddress address, int port, CommandUtility commands) {
         CommandPayload.WithScriptName payload = (CommandPayload.WithScriptName) request.getPayload();
-        String result = ScriptManager.execute(payload.scriptName(), socket, address, port, commands);
+        String result = ScriptManager.execute(payload.scriptName(), socket, address, port, commands, request.getLogin(), request.getPassword());
         
         System.out.println(result);
         System.out.println();

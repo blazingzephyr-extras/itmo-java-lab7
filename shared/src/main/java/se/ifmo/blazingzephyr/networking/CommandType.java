@@ -2,6 +2,7 @@ package se.ifmo.blazingzephyr.networking;
 
 public enum CommandType {
     NONE,
+    REGISTER,
     ADD,
     UPDATE,
     REMOVE_BY_ID,

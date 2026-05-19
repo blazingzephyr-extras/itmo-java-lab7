@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,28 @@ public class CommandExecutionUtility {
     }
 
     public Response execute(ServerContext ctx, Request request) {
+        // Регистрация.
+        if (request.getCommandType() == CommandType.REGISTER) {
+            try {
+                boolean ok = ctx.database().registerUser(request.getLogin(), request.getPassword());
+                return ok
+                    ? Response.ok("Регистрация успешна.")
+                    : Response.error("Пользователь с таким логином уже существует.");
+            } catch (SQLException e) {
+                return Response.error("Ошибка БД: " + e.getMessage());
+            }
+        }
 
+        // Авторизация пользователя.
+        try {
+            if (!ctx.database().authenticate(request.getLogin(), request.getPassword())) {
+                return Response.error("Неверный логин или пароль.");
+            }
+        } catch (SQLException e) {
+            return Response.error("Ошибка БД при авторизации: " + e.getMessage());
+        }
+
+        // Диспетчеризация
         CommandType type = request.getCommandType();
         if (!this.commands.containsKey(type)) {
 

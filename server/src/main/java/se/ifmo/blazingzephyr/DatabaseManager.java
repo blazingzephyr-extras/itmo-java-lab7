@@ -1,5 +1,8 @@
 package se.ifmo.blazingzephyr;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -7,8 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Stack;
@@ -54,11 +55,68 @@ public class DatabaseManager {
                 organization_type   ORGANIZATIONTYPE            NOT NULL,
                 street              VARCHAR(255),
                 zip_code            VARCHAR(50)
-            )
+            );
+
+            CREATE TABLE IF NOT EXISTS users (
+                id       BIGSERIAL      PRIMARY KEY,
+                login    VARCHAR(255)   NOT NULL UNIQUE,
+                password VARCHAR(255)   NOT NULL  -- MD2 хеш
+            );
+
+            ALTER TABLE organizations
+                ADD COLUMN IF NOT EXISTS owner VARCHAR(255) REFERENCES users(login);
             """;
 
         try (Statement st = connection.createStatement()) {
             st.executeUpdate(sql);
+        }
+    }
+
+    /**
+     * Регистрация нового пользователя.
+     * @param login пользовательский логин.
+     * @param password пользовательский пароль.
+     * @return true, если удалось зарегистрировать нового пользователя, иначе false.
+     * @throws SQLException
+     */
+    public boolean registerUser(String login, String password) throws SQLException {
+        String hash = hashMD2(password);
+        String sql = "INSERT INTO users (login, password) VALUES (?, ?) ON CONFLICT DO NOTHING";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, login);
+            ps.setString(2, hash);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Проверка логина/пароля
+     * @param login пользовательский логин.
+     * @param password пользовательский пароль.
+     * @return true, если удалось авторизоваться, false в противном случае.
+     * @throws SQLException
+     */
+    public boolean authenticate(String login, String password) throws SQLException {
+        String hash = hashMD2(password);
+        String sql = "SELECT 1 FROM users WHERE login=? AND password=?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, login);
+            ps.setString(2, hash);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        }
+    }
+
+    // MD2 хеширование
+    private String hashMD2(String password) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD2");
+            byte[] hash = md.digest(password.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) sb.append(String.format("%02x", b));
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
     }
 

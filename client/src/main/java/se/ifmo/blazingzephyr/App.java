@@ -33,6 +33,18 @@ public class App {
             CommandUtility commands = new CommandUtility();
             ArrayList<Request> history = new ArrayList<>();
 
+            // Проверка регистрации пользователя.
+            System.out.println("Вы уже зарегистрированы (y/any)?");
+            String answer = scanner.nextLine().trim().toLowerCase();
+
+            // Регистрация нового пользователя.
+            if (!answer.equals("y") && !RegistrationUtility.register(socket, address, port, scanner)) {
+                return;
+            }
+            else {
+                System.out.println();
+            }
+
             // Сериализация объекта.
             byte[] buffer;
             while (true) {
@@ -56,8 +68,15 @@ public class App {
                 // Help выводит в справке команды конкретного клиента.
                 else if (request.getCommandType() == CommandType.HELP) { ClientCommands.printHelp(request.getPayload(), commands.getCommands()); }
 
-                //
-                else if (request.getCommandType() == CommandType.EXECUTE_SCRIPT) { ClientCommands.executeScript(request, socket, address, port, commands); }
+                // Запрос на введение логина и пароля.
+                System.out.print("Логин: ");
+                String login = scanner.nextLine().trim();
+                System.out.print("Пароль: ");
+                String password = scanner.nextLine().trim();
+                request.packAuthorization(login, password);
+
+                // Выполнение скрипта.
+                if (request.getCommandType() == CommandType.EXECUTE_SCRIPT) { ClientCommands.executeScript(request, socket, address, port, commands); }
                 
                 else if (request.getCommandType() == CommandType.EXIT) { return; }
                 else {
@@ -92,7 +111,7 @@ public class App {
 
         // Обрабатываем ошибки получения пакетов.
         catch (IOException e) {
-            System.out.println("Ошибка получени: " + e.getLocalizedMessage());
+            System.out.println("Ошибка получения пакета: " + e.getLocalizedMessage());
         }
         
         // Обрабатываем ошибки неизвестного класса.

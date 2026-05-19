@@ -33,7 +33,9 @@ public class ScriptManager {
             DatagramSocket socket,
             InetAddress address,
             int port,
-            CommandUtility commands) {
+            CommandUtility commands,
+            String login,
+            String password) {
 
         // Защита от рекурсии
         if (scriptStack.contains(filePath)) {
@@ -60,6 +62,7 @@ public class ScriptManager {
                 }
 
                 Request request = validation.request().get();
+                request.packAuthorization(login, password);
 
                 // exit в скрипте — прерываем выполнение скрипта, не завершаем клиент
                 if (request.getCommandType() == CommandType.EXIT) {
@@ -80,7 +83,7 @@ public class ScriptManager {
                 if (request.getCommandType() == CommandType.EXECUTE_SCRIPT) {
                     CommandPayload.WithScriptName payload =
                         (CommandPayload.WithScriptName) request.getPayload();
-                    String nested = execute(payload.scriptName(), socket, address, port, commands);
+                    String nested = execute(payload.scriptName(), socket, address, port, commands, login, password);
                     scriptOutput.append(nested).append('\n');
                     continue;
                 }

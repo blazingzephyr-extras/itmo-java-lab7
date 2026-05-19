@@ -13,6 +13,8 @@ public final class Request implements Serializable {
 
     private final CommandType commandType;
     private final CommandPayload payload;
+    private String login;
+    private String password;
 
     public Request(CommandType commandType, CommandPayload payload) {
         this.commandType = commandType;
@@ -23,8 +25,15 @@ public final class Request implements Serializable {
         this(commandType, new CommandPayload.None());
     }
 
+    public void packAuthorization(String login, String password) {
+        this.login = login;
+        this.password = password;
+    }
+
     public CommandType getCommandType() { return this.commandType; }
     public CommandPayload getPayload() { return this.payload; }
+    public String getLogin() { return this.login; }
+    public String getPassword() { return this.password; }
 
     @Override
     public String toString() {
