@@ -1,6 +1,6 @@
 package se.ifmo.blazingzephyr;
 
-import java.util.Stack;
+import java.util.List;
 import se.ifmo.blazingzephyr.model.Organization;
 
 /**
@@ -16,4 +16,4 @@ import se.ifmo.blazingzephyr.model.Organization;
  * @author blazingzephyr
  * @version 1.0
  */
-public record ServerContext(Stack<Organization> collection, DatabaseManager database) { }
+public record ServerContext(List<Organization> collection, DatabaseManager database) { }
