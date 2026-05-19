@@ -144,7 +144,7 @@ public enum CommandStub {
         new String[] { "element: Элемент, который требуется добавить в коллекцию." },
         ctx -> {
             OrganizationData data = new OrganizationData().query(ctx.scanner());
-            return ValidationResult.ok(CommandType.ADD, new CommandPayload.WithOrganization(data));
+            return ValidationResult.ok(CommandType.ADD_IF_MIN, new CommandPayload.WithOrganization(data));
         }
     ),
     

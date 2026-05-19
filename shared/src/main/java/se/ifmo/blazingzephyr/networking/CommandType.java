@@ -10,7 +10,7 @@ public enum CommandType {
     INFO,
     HELP,
     EXECUTE_SCRIPT,
-    ADD_IF_MAX,
+    ADD_IF_MIN,
     REMOVE_GREATER,
     REMOVE_ALL_BY_TYPE,
     REORDER,

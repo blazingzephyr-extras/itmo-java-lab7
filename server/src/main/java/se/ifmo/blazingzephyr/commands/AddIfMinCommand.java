@@ -1,7 +1,11 @@
 package se.ifmo.blazingzephyr.commands;
 
+import java.sql.SQLException;
+import java.util.Optional;
+
 import se.ifmo.blazingzephyr.ServerContext;
 import se.ifmo.blazingzephyr.model.Organization;
+import se.ifmo.blazingzephyr.model.OrganizationData;
 import se.ifmo.blazingzephyr.networking.CommandPayload;
 import se.ifmo.blazingzephyr.networking.CommandPayload.WithOrganization;
 import se.ifmo.blazingzephyr.networking.CommandType;
@@ -18,7 +22,7 @@ public class AddIfMinCommand implements Command<CommandPayload.WithOrganization>
      */
     @Override
     public CommandType getType() {
-        return CommandType.ADD_IF_MAX;
+        return CommandType.ADD_IF_MIN;
     }
 
     /**
@@ -27,19 +31,29 @@ public class AddIfMinCommand implements Command<CommandPayload.WithOrganization>
     @Override
     public String execute(ServerContext ctx, WithOrganization arg) {
 
-        Organization min = ctx.collection().stream().min(Organization::compareTo).get();
-        Organization organization = new Organization(arg.organization());
+        Optional<Organization> min = Optional.empty();
+        try {
+            min = ctx.database().getMinByName();
+        }
+        catch (SQLException ex) {
+            return "Произошла ошибка во время получения минимального элемента из базы данных";
+        }
 
-        if (organization.compareTo(min) < 0)
+        OrganizationData data = arg.organization();
+        if (min.isEmpty() || data.getName().compareTo(min.get().getName()) < 0)
         {
-            ctx.collection().add(organization);
-            return String.format(
-                "Организация '%s' успешно добавлена с ID %d.",
-                organization.getName(),
-                organization.getId());
+            try {
+                long id = ctx.database().insert(data);
+                return String.format(
+                    "Организация '%s' успешно добавлена с ID %d.",
+                    data.getName(),
+                    id);
+            } catch (SQLException e) {
+                return "Произошла ошибка во время добавления объекта в базу данных: " + e.getLocalizedMessage();
+            }
         }
         else {
-            return "Организация не была добавлена.";
+            return "Организация не была добавлена, потому что имеется минимальный элемент.";
         }
     }
 }

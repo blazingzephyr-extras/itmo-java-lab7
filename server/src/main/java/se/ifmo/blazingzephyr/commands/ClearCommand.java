@@ -1,5 +1,7 @@
 package se.ifmo.blazingzephyr.commands;
 
+import java.sql.SQLException;
+
 import se.ifmo.blazingzephyr.ServerContext;
 import se.ifmo.blazingzephyr.networking.CommandPayload;
 import se.ifmo.blazingzephyr.networking.CommandType;
@@ -25,7 +27,11 @@ public class ClearCommand implements Command<None> {
      */
     @Override
     public String execute(ServerContext ctx, None args) {
-        ctx.collection().clear();
-        return "Элементы коллекции были зачищены.\nПроверьте, используя show. Для дополнительных опций используйте help.";
+        try {
+            ctx.database().deleteAll();
+            return "Элементы коллекции были зачищены.\nПроверьте, используя show. Для дополнительных опций используйте help.";
+        } catch (SQLException e) {
+            return "Произошла ошибка во время очистки базы данных: " + e.getLocalizedMessage();
+        }
     }
 }

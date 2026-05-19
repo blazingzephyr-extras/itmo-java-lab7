@@ -1,5 +1,8 @@
 package se.ifmo.blazingzephyr.commands;
 
+import java.sql.SQLException;
+import java.util.Optional;
+
 import se.ifmo.blazingzephyr.ServerContext;
 import se.ifmo.blazingzephyr.model.Organization;
 import se.ifmo.blazingzephyr.networking.CommandType;
@@ -26,13 +29,21 @@ public class MinByName implements Command<None> {
      */
     @Override
     public String execute(ServerContext ctx, None args) {
-        Organization org = ctx.collection().stream()
-            .min(Organization::compareTo)
-            .orElse(null);
 
-        return String.format(
-            "Элемент с минимальным значением name.\n%s\n%s",
-            TableUtility.getHeader(),
-            TableUtility.getEntry(org));
+        try {
+            Optional<Organization> min = ctx.database().getMinByName();
+            if (min.isEmpty()) {
+                return "Элемента с минимальным значением name не существует.";
+            }
+            else {
+                return String.format(
+                    "Элемент с минимальным значением name.\n%s\n%s",
+                    TableUtility.getHeader(),
+                    TableUtility.getEntry(min.get()));
+            }
+        }
+        catch (SQLException ex) {
+            return "Произошла ошибка во время получения минимального элемента из базы данных. " + ex.getMessage();
+        }
     }
 }

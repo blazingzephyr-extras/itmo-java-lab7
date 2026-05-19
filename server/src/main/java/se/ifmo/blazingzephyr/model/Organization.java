@@ -1,16 +1,20 @@
 package se.ifmo.blazingzephyr.model;
 
 import java.io.Serializable;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
  * Класс организации, хранящейся в коллекции.
  * Программа управляет коллекцией его экземпляров.
  * Реализует интерфейс Comparable для предоставления сортировки по умолчанию (по id).
+ * 
+ * По причине ненадобности со стороны клиента и для инкапсуляции данных
+ * объект БД перемещён на сторону сервера.
+ * 
+ * Парсировка из-в CSV была удалена из-за ненадобности.
+ * 
  * @author blazingzephyr
- * @version 1.0
+ * @version 2.0
  */
 public class Organization implements Comparable<Organization>, Serializable {
     
@@ -24,11 +28,12 @@ public class Organization implements Comparable<Organization>, Serializable {
     private Address officialAddress;        // Поле не может быть null
 
     /**
-     * Конструктор для создания новой организации (с id и датой).
+     * Конструктор для создания организации.
+     * @param data данные, откуда будет взята.
      */
-    public Organization() {
-        this.creationDate = new Date();
-        this.id = this.creationDate.getTime();
+    public Organization(long id, Date creationDate) {
+        this.creationDate = creationDate;
+        this.id = id;
 
         this.name = "<MISSING>";
         this.coordinates = new Coordinates();
@@ -36,22 +41,6 @@ public class Organization implements Comparable<Organization>, Serializable {
         this.fullName = "<MISSING>";
         this.type = OrganizationType.GOVERNMENT;
         this.officialAddress = new Address();
-    }
-
-    /**
-     * Конструктор для создания новой организации из объекта OrganizationData.
-     * @param data данные, откуда будет взята.
-     */
-    public Organization(OrganizationData data) {
-        this.creationDate = new Date();
-        this.id = this.creationDate.getTime();
-
-        this.name = data.getName();
-        this.coordinates = data.getCoordinates();
-        this.annualTurnover = data.getAnnualTurnover();
-        this.fullName = data.getFullName();
-        this.type = data.getOrganizationType();
-        this.officialAddress = data.getOfficialAddress();
     }
 
     /**
@@ -229,57 +218,6 @@ public class Organization implements Comparable<Organization>, Serializable {
         return "Organization(id=" + id + ", name=" + name + ", coordinates=" + coordinates + ", creationDate=" +
             creationDate + ", annualTurnover=" + annualTurnover + ", fullName=" + fullName + ", type=" + type +
                             ", officialAddress=" + officialAddress + ")";
-    }
-
-    /**
-     * Преобразует объект в строку CSV.
-     * @return строка CSV.
-     */
-    public String toCsv() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return id + ";" + name + ";" + coordinates.toCsv() + ";" + sdf.format(creationDate) + ";" +
-            annualTurnover + ";" + fullName + ";" + type + ";" + officialAddress.toCsv();
-    }
-    
-    /**
-     * Создает объект из строки CSV.
-     * @param csv строка CSV
-     * @return объект Organization или null при ошибке
-     */
-    public static Organization fromCsv(String csv) {
-        String[] parts = csv.split(";", -1);
-        if (parts.length != 10) return null;
-
-        long id = Long.parseLong(parts[0]);
-        
-        String name = parts[1];
-        Coordinates coordinates = Coordinates.fromCsv(parts[2] + ";" + parts[3]);
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date creationDate;
-        try {
-            creationDate = sdf.parse(parts[4]);
-        }
-        catch (ParseException exception) {
-            throw new IllegalArgumentException("Некорректный формат даты.");
-        }
-
-        double annualTurnover = Double.parseDouble(parts[5]);
-        String fullName = parts[6];
-        OrganizationType type = OrganizationType.valueOf(parts[7]);
-        Address address = Address.fromCsv(parts[8] + ";" + parts[9]);
-
-        Organization organization = new Organization()
-            .setName(name)
-            .setCoordinates(coordinates)
-            .setAnnualTurnover(annualTurnover)
-            .setFullName(fullName)
-            .setOrganizationType(type)
-            .setOfficialAddress(address);
-
-        organization.id = id;
-        organization.creationDate = creationDate;
-        return organization;
     }
 
     /**

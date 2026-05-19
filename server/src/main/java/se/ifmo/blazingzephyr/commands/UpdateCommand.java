@@ -1,7 +1,7 @@
 package se.ifmo.blazingzephyr.commands;
 
+import java.sql.SQLException;
 import se.ifmo.blazingzephyr.ServerContext;
-import se.ifmo.blazingzephyr.model.Organization;
 import se.ifmo.blazingzephyr.model.OrganizationData;
 import se.ifmo.blazingzephyr.networking.CommandType;
 import se.ifmo.blazingzephyr.networking.CommandPayload.WithIdAndOrganization;
@@ -26,29 +26,23 @@ public class UpdateCommand implements Command<WithIdAndOrganization> {
      */
     @Override
     public String execute(ServerContext ctx, WithIdAndOrganization args) {
-        java.util.Optional<Organization> org = ctx
-            .collection()
-            .stream()
-            .filter(o -> o.getId() == args.id())
-            .findFirst();
 
-        if (org.isEmpty())
-        {
-            return "Организации с искомым ID не существует.";
-        }
-        else
-        {
-            Organization organization = org.get();
-            OrganizationData data = args.organization();
-            organization.setName(data.getName())
-                .setName(data.getName())
-                .setCoordinates(data.getCoordinates())
-                .setFullName(data.getFullName())
-                .setAnnualTurnover(data.getAnnualTurnover())
-                .setOrganizationType(data.getOrganizationType())
-                .setOfficialAddress(data.getOfficialAddress());
+        long id = args.id();
+        OrganizationData data = args.organization();
 
-            return String.format("Организация с ID %d успешно изменена.%n", organization.getId());
+        try {
+            boolean success = ctx.database().update(id, data);
+            if (!success)
+            {
+                return "Организация не была обновлена. " +
+                    "Проверьте существование организации с искомым ID.";
+            }
+            else
+            {
+                return String.format("Организация с ID %d успешно изменена.%n", id);
+            }
+        } catch (SQLException ex) {
+            return "Произошла ошибка во время обновления объекта в базе данных: " + ex.getMessage();
         }
     }
 }
