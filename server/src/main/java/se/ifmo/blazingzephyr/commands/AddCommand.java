@@ -2,6 +2,7 @@ package se.ifmo.blazingzephyr.commands;
 
 import java.sql.SQLException;
 import se.ifmo.blazingzephyr.ServerContext;
+import se.ifmo.blazingzephyr.model.Organization;
 import se.ifmo.blazingzephyr.model.OrganizationData;
 import se.ifmo.blazingzephyr.networking.CommandType;
 import se.ifmo.blazingzephyr.networking.CommandPayload.WithOrganization;
@@ -29,11 +30,13 @@ public class AddCommand implements Command<WithOrganization> {
 
         OrganizationData data = args.organization();
         try {
-            long id = ctx.database().insert(data);
+            Organization newOrg = ctx.database().insert(data);
+            ctx.collection().add(newOrg);
+
             return String.format(
                 "Организация '%s' успешно добавлена с ID %d.",
                 data.getName(),
-                id);
+                newOrg);
         } catch (SQLException e) {
             return "Произошла ошибка во время добавления объекта в базу данных: " + e.getLocalizedMessage();
         }

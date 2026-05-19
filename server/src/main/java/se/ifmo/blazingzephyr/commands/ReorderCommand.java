@@ -2,6 +2,7 @@ package se.ifmo.blazingzephyr.commands;
 
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
@@ -31,17 +32,6 @@ public class ReorderCommand implements Command<None> {
      */
     @Override
     public String execute(ServerContext ctx, None args) {
-        Stack<Organization> organizations;
-        try {
-            organizations = ctx.database().selectAllReverse();
-        } catch (SQLException ex) {
-            return "Произошла ошибка при выполнении SQL-запроса 'SELECT * from organizations': " + ex.getMessage();
-        }
-
-        if (organizations.isEmpty()) {
-            return "Коллекция пуста.";
-        }
-
         return String.format(
             """
             Порядок элементов в таблице реляционной базы данных не имеет значения.
@@ -49,10 +39,11 @@ public class ReorderCommand implements Command<None> {
             Напечатаю коллекцию в обратном порядке.
             Количество организаций: %d%n%s%n%s
             """,
-            organizations.size(),
+            ctx.collection().size(),
             TableUtility.getHeader(),
-            organizations
+            ctx.collection()
                 .stream()
+                .sorted(Comparator.reverseOrder())
                 .map(TableUtility::getEntry)
                 .collect(Collectors.joining("\n"))
         );

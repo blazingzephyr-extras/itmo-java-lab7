@@ -28,20 +28,14 @@ public class PrintFieldAscendingAnnualTurnoverCommand implements Command<None> {
      */
     @Override
     public String execute(ServerContext ctx, None args) {
-        try {
-            Stack<Organization> organizations = ctx.database().selectAll();
-            return String.format(
-                "| %-40s |\n|------------------------------------------|\n%s",
-                "Годовая выручка в порядке возрастания.",
-                organizations
-                    .stream()
-                    .map(Organization::getAnnualTurnover)
-                    .sorted(Double::compareTo)
-                    .map(t -> String.format("| %-40.2f | ", t))
-                    .collect(Collectors.joining("\n"))
-            );
-        } catch (SQLException e) {
-            return "Произошла ошибка во время получения списка объектов в базу данных: " + e.getLocalizedMessage();
-        }
+        return String.format(
+            "| %-40s |\n|------------------------------------------|\n%s",
+            "Годовая выручка в порядке возрастания.",
+            ctx.collection().stream()
+                .map(Organization::getAnnualTurnover)
+                .sorted(Double::compareTo)
+                .map(t -> String.format("| %-40.2f | ", t))
+                .collect(Collectors.joining("\n"))
+        );
     }
 }

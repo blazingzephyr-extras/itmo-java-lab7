@@ -43,11 +43,12 @@ public class AddIfMinCommand implements Command<CommandPayload.WithOrganization>
         if (min.isEmpty() || data.getName().compareTo(min.get().getName()) < 0)
         {
             try {
-                long id = ctx.database().insert(data);
+                Organization newOrg = ctx.database().insert(data);
+                ctx.collection().add(newOrg);
                 return String.format(
                     "Организация '%s' успешно добавлена с ID %d.",
                     data.getName(),
-                    id);
+                    newOrg.getId());
             } catch (SQLException e) {
                 return "Произошла ошибка во время добавления объекта в базу данных: " + e.getLocalizedMessage();
             }

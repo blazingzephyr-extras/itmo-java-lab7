@@ -2,6 +2,7 @@ package se.ifmo.blazingzephyr.commands;
 
 import java.sql.SQLException;
 import se.ifmo.blazingzephyr.ServerContext;
+import se.ifmo.blazingzephyr.model.Organization;
 import se.ifmo.blazingzephyr.model.OrganizationData;
 import se.ifmo.blazingzephyr.networking.CommandType;
 import se.ifmo.blazingzephyr.networking.CommandPayload.WithIdAndOrganization;
@@ -39,6 +40,21 @@ public class UpdateCommand implements Command<WithIdAndOrganization> {
             }
             else
             {
+                java.util.Optional<Organization> org = ctx
+                    .collection()
+                    .stream()
+                    .filter(o -> o.getId() == args.id())
+                    .findFirst();
+
+                Organization organization = org.get();
+                organization.setName(data.getName())
+                    .setName(data.getName())
+                    .setCoordinates(data.getCoordinates())
+                    .setFullName(data.getFullName())
+                    .setAnnualTurnover(data.getAnnualTurnover())
+                    .setOrganizationType(data.getOrganizationType())
+                    .setOfficialAddress(data.getOfficialAddress());
+
                 return String.format("Организация с ID %d успешно изменена.%n", id);
             }
         } catch (SQLException ex) {

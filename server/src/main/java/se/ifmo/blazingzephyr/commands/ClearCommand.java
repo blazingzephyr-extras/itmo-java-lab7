@@ -29,6 +29,7 @@ public class ClearCommand implements Command<None> {
     public String execute(ServerContext ctx, None args) {
         try {
             ctx.database().deleteAll();
+            ctx.collection().clear();
             return "Элементы коллекции были зачищены.\nПроверьте, используя show. Для дополнительных опций используйте help.";
         } catch (SQLException e) {
             return "Произошла ошибка во время очистки базы данных: " + e.getLocalizedMessage();

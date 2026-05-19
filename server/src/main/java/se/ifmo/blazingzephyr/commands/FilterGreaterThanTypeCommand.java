@@ -1,13 +1,9 @@
 package se.ifmo.blazingzephyr.commands;
 
-import java.sql.SQLException;
-import java.util.Optional;
-import java.util.Stack;
 import java.util.stream.Collectors;
 
 import se.ifmo.blazingzephyr.ServerContext;
 import se.ifmo.blazingzephyr.TableUtility;
-import se.ifmo.blazingzephyr.model.Organization;
 import se.ifmo.blazingzephyr.networking.CommandPayload.WithOrganizationType;
 import se.ifmo.blazingzephyr.networking.CommandType;
 
@@ -31,16 +27,8 @@ public class FilterGreaterThanTypeCommand implements Command<WithOrganizationTyp
      */
     @Override
     public String execute(ServerContext ctx, WithOrganizationType args) {
-        
-        Stack<Organization> organizations;
-        try {
-            organizations = ctx.database().selectAllGreaterThanType(args.organizationType());
-        } catch (SQLException ex) {
-            return "Произошла ошибка во время получения списка элементов из базы данных. " + ex.getMessage();
-        }
 
-        String result = organizations
-            .stream()
+        String result = ctx.collection().stream()
             .filter(org -> org.getOrganizationType() != null && org.getOrganizationType().compareTo(args.organizationType()) > 0)
             .map(TableUtility::getEntry)
             .collect(Collectors.joining("\n"));

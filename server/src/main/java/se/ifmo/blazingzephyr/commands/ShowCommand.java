@@ -29,23 +29,16 @@ public class ShowCommand implements Command<None> {
      */
     @Override
     public String execute(ServerContext ctx, None args) {
-        
-        Stack<Organization> organizations;
-        try {
-            organizations = ctx.database().selectAll();
-        } catch (SQLException ex) {
-            return "Произошла ошибка при выполнении SQL-запроса 'SELECT * from organizations': " + ex.getMessage();
-        }
 
-        if (organizations.isEmpty()) {
+        if (ctx.collection().isEmpty()) {
             return "Коллекция пуста.";
         }
 
         return String.format(
-            "Количество организаций: %d%n%s%n%s",
-            organizations.size(),
+            "Количество элементов: %d%n%s%n%s",
+            ctx.collection().size(),
             TableUtility.getHeader(),
-            organizations
+            ctx.collection()
                 .stream()
                 .map(TableUtility::getEntry)
                 .collect(Collectors.joining("\n"))

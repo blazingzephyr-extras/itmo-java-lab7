@@ -30,20 +30,13 @@ public class MinByName implements Command<None> {
     @Override
     public String execute(ServerContext ctx, None args) {
 
-        try {
-            Optional<Organization> min = ctx.database().getMinByName();
-            if (min.isEmpty()) {
-                return "Элемента с минимальным значением name не существует.";
-            }
-            else {
-                return String.format(
-                    "Элемент с минимальным значением name.\n%s\n%s",
-                    TableUtility.getHeader(),
-                    TableUtility.getEntry(min.get()));
-            }
-        }
-        catch (SQLException ex) {
-            return "Произошла ошибка во время получения минимального элемента из базы данных. " + ex.getMessage();
-        }
+        Organization org = ctx.collection().stream()
+            .min(Organization::compareTo)
+            .orElse(null);
+
+        return String.format(
+            "Элемент с минимальным значением name.\n%s\n%s",
+            TableUtility.getHeader(),
+            TableUtility.getEntry(org));
     }
 }

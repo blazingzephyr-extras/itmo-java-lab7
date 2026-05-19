@@ -212,15 +212,16 @@ public class DatabaseManager {
     /**
      * Добавляет новую организацию в таблицу.
      * @param data Данные организации, которую необходимо добавить.
-     * @return ID добавленного элемента.
+     * @return Добавленный элемент.
      */
-    public long insert(OrganizationData data) throws SQLException {
+    public Organization insert(OrganizationData data) throws SQLException {
         String sql = """
             INSERT INTO organizations
               (name, coord_x, coord_y, annual_turnover,
                 full_name, organization_type, street, zip_code)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            RETURNING id
+            RETURNING (id, name, coord_x, coord_y, creation_date, annual_turnover,
+                full_name, organization_type, street, zip_code)
             """;
 
         PGobject pgType = new PGobject();
@@ -239,7 +240,7 @@ public class DatabaseManager {
 
             ResultSet rs = ps.executeQuery();
             rs.next();
-            return rs.getLong("id");
+            return mapRow(rs);
         }
     }
 

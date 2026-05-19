@@ -38,6 +38,13 @@ public class RemoveById implements Command<WithId> {
             }
             else
             {
+                java.util.Optional<Organization> org = ctx
+                    .collection()
+                    .stream()
+                    .filter(o -> o.getId() == args.id())
+                    .findFirst();
+                
+                ctx.collection().remove(org.get());
                 return String.format("Организация с ID %d успешно удалена.%n", id);
             }
         } catch (SQLException ex) {

@@ -6,6 +6,10 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.sql.SQLException;
+import java.util.Stack;
+
+import se.ifmo.blazingzephyr.model.Organization;
 
 import se.ifmo.blazingzephyr.networking.Request;
 import se.ifmo.blazingzephyr.networking.Response;
@@ -20,8 +24,10 @@ public class Server {
 
     // Минимальные изменения: Stack<Organization> заменён на DatabaseManager,
     // который затем передаётся в ServerContext и, соответственно, в команды.
-    public Server(DatabaseManager database) throws IOException {
-        this.context = new ServerContext(database);
+    public Server(DatabaseManager database) throws IOException, SQLException {
+        
+        Stack<Organization> collection = database.selectAll();
+        this.context = new ServerContext(collection, database);
         this.isRunning = false;
 
         // Резервируем примерно 3000 байтов под сообщение пользователя.

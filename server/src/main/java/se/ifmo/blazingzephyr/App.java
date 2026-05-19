@@ -40,6 +40,10 @@ public class App {
         catch (IOException e) {
             System.out.println("Невозможно запустить сервер: " + e.getLocalizedMessage());
         }
+
+        catch (SQLException e) {
+            System.out.println("Невозможно получить список объектов БД при запуске сервера: " + e.getLocalizedMessage());
+        }
     }
 
     // Запускаем серверные команды в отдельном потоке.
