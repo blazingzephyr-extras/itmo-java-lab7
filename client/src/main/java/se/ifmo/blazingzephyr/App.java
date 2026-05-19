@@ -63,10 +63,16 @@ public class App {
                 Request request = validation.request().get();
 
                 // Выводит историю команд конкретного клиента.
-                if (request.getCommandType() == CommandType.HISTORY) { ClientCommands.printHistory(history); }
+                if (request.getCommandType() == CommandType.HISTORY) { 
+                    ClientCommands.printHistory(history);
+                    continue;
+                }
 
                 // Help выводит в справке команды конкретного клиента.
-                else if (request.getCommandType() == CommandType.HELP) { ClientCommands.printHelp(request.getPayload(), commands.getCommands()); }
+                else if (request.getCommandType() == CommandType.HELP) {
+                    ClientCommands.printHelp(request.getPayload(), commands.getCommands());
+                    continue;
+                }
 
                 // Запрос на введение логина и пароля.
                 System.out.print("Логин: ");
@@ -78,6 +84,7 @@ public class App {
                 // Выполнение скрипта.
                 if (request.getCommandType() == CommandType.EXECUTE_SCRIPT) { ClientCommands.executeScript(request, socket, address, port, commands); }
                 
+                // Выход.
                 else if (request.getCommandType() == CommandType.EXIT) { return; }
                 else {
                     // Сериализуем команды.

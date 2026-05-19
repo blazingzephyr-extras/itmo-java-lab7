@@ -29,7 +29,7 @@ public class AddIfMinCommand implements Command<CommandPayload.WithOrganization>
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, WithOrganization arg) {
+    public String execute(ServerContext ctx, WithOrganization arg, String login) {
 
         Optional<Organization> min = Optional.empty();
         try {
@@ -43,7 +43,7 @@ public class AddIfMinCommand implements Command<CommandPayload.WithOrganization>
         if (min.isEmpty() || data.getName().compareTo(min.get().getName()) < 0)
         {
             try {
-                Organization newOrg = ctx.database().insert(data);
+                Organization newOrg = ctx.database().insert(data, login);
                 ctx.collection().add(newOrg);
                 return String.format(
                     "Организация '%s' успешно добавлена с ID %d.",

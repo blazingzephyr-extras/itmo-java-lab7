@@ -21,5 +21,5 @@ public interface Command<T extends CommandPayload> extends Cloneable {
      * @param context Контекст исполнения (дополнительные данные комманды).
      * @param payload Аргументы команды.
      */
-    String execute(ServerContext context, T payload);
+    String execute(ServerContext context, T payload, String login);
 }

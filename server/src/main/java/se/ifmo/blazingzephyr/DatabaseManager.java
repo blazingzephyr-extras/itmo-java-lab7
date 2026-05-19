@@ -121,6 +121,23 @@ public class DatabaseManager {
     }
 
     /**
+     * Получает организацию по ID с БД.
+     * @return Организация.
+     */
+    public Optional<Organization> selectById(long id) throws SQLException {
+        String sql = "SELECT * FROM organizations WHERE id=?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                return Optional.of(mapRow(rs));
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /**
      * Получает список организаций с БД.
      * @return Организации.
      */
@@ -272,14 +289,13 @@ public class DatabaseManager {
      * @param data Данные организации, которую необходимо добавить.
      * @return Добавленный элемент.
      */
-    public Organization insert(OrganizationData data) throws SQLException {
+    public Organization insert(OrganizationData data, String owner) throws SQLException {
         String sql = """
             INSERT INTO organizations
               (name, coord_x, coord_y, annual_turnover,
-                full_name, organization_type, street, zip_code)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            RETURNING (id, name, coord_x, coord_y, creation_date, annual_turnover,
-                full_name, organization_type, street, zip_code)
+                full_name, organization_type, street, zip_code, owner)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            RETURNING *
             """;
 
         PGobject pgType = new PGobject();
@@ -295,6 +311,7 @@ public class DatabaseManager {
             ps.setObject(6, pgType);
             ps.setString(7, data.getOfficialAddress().getStreet());
             ps.setString(8, data.getOfficialAddress().getZipCode());
+            ps.setString(9, owner);
 
             ResultSet rs = ps.executeQuery();
             rs.next();
@@ -350,9 +367,9 @@ public class DatabaseManager {
     /**
      * Очищает таблицу.
      */
-    public void deleteAll() throws SQLException {
+    public void deleteAll(String login) throws SQLException {
         try (Statement st = connection.createStatement()) {
-            st.executeUpdate("DELETE FROM organizations");
+            st.executeUpdate("DELETE * FROM organizations WHERE owner='" + login + "'");
         }
     }
 
@@ -384,6 +401,8 @@ public class DatabaseManager {
                 .setStreet(rs.getString("street"))
                 .setZipCode(rs.getString("zip_code"))   
         );
+
+        org.setOwner(rs.getString("owner"));
 
         return org;
     }

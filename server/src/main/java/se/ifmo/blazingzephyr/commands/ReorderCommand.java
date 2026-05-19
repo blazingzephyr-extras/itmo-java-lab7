@@ -31,7 +31,7 @@ public class ReorderCommand implements Command<None> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, None args) {
+    public String execute(ServerContext ctx, None args, String login) {
         return String.format(
             """
             Порядок элементов в таблице реляционной базы данных не имеет значения.

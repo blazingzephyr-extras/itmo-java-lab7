@@ -26,7 +26,7 @@ public class FilterGreaterThanTypeCommand implements Command<WithOrganizationTyp
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, WithOrganizationType args) {
+    public String execute(ServerContext ctx, WithOrganizationType args, String login) {
 
         String result = ctx.collection().stream()
             .filter(org -> org.getOrganizationType() != null && org.getOrganizationType().compareTo(args.organizationType()) > 0)

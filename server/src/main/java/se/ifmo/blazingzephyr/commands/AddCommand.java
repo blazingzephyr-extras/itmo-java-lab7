@@ -26,17 +26,17 @@ public class AddCommand implements Command<WithOrganization> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, WithOrganization args) {
+    public String execute(ServerContext ctx, WithOrganization args, String login) {
 
         OrganizationData data = args.organization();
         try {
-            Organization newOrg = ctx.database().insert(data);
+            Organization newOrg = ctx.database().insert(data, login);
             ctx.collection().add(newOrg);
 
             return String.format(
                 "Организация '%s' успешно добавлена с ID %d.",
                 data.getName(),
-                newOrg);
+                newOrg.getId());
         } catch (SQLException e) {
             return "Произошла ошибка во время добавления объекта в базу данных: " + e.getLocalizedMessage();
         }

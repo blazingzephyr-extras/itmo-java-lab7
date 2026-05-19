@@ -26,6 +26,7 @@ public class Organization implements Comparable<Organization>, Serializable {
     private String fullName;                // Строка не может быть пустой, Поле не может быть null
     private OrganizationType type;          // Поле не может быть null
     private Address officialAddress;        // Поле не может быть null
+    private String owner;                   // A
 
     /**
      * Конструктор для создания организации.
@@ -41,6 +42,7 @@ public class Organization implements Comparable<Organization>, Serializable {
         this.fullName = "<MISSING>";
         this.type = OrganizationType.GOVERNMENT;
         this.officialAddress = new Address();
+        this.owner = "<MISSING>";
     }
 
     /**
@@ -115,6 +117,10 @@ public class Organization implements Comparable<Organization>, Serializable {
      */
     public Double getAnnualTurnover() {
         return this.annualTurnover;
+    }
+
+    public String getOwner() {
+        return this.owner;
     }
 
     /**
@@ -209,6 +215,11 @@ public class Organization implements Comparable<Organization>, Serializable {
         return this;
     }
 
+    public Organization setOwner(String owner) {
+        this.owner = owner;
+        return this;
+    }
+
     /**
      * Возвращает графическое представление данной строки.
      * @return координатная строка.
@@ -217,7 +228,7 @@ public class Organization implements Comparable<Organization>, Serializable {
     public String toString() {
         return "Organization(id=" + id + ", name=" + name + ", coordinates=" + coordinates + ", creationDate=" +
             creationDate + ", annualTurnover=" + annualTurnover + ", fullName=" + fullName + ", type=" + type +
-                            ", officialAddress=" + officialAddress + ")";
+                            ", officialAddress=" + officialAddress + ", owner=" + owner + ")";
     }
 
     /**

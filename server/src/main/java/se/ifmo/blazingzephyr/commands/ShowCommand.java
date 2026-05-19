@@ -28,7 +28,7 @@ public class ShowCommand implements Command<None> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, None args) {
+    public String execute(ServerContext ctx, None args, String login) {
 
         if (ctx.collection().isEmpty()) {
             return "Коллекция пуста.";

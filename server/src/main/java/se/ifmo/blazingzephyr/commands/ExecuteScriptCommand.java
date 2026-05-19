@@ -25,7 +25,7 @@ public class ExecuteScriptCommand implements Command<WithScriptName> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, WithScriptName args) {
+    public String execute(ServerContext ctx, WithScriptName args, String login) {
 
         return "Не выполняется на сервере.";
         // return ScriptManager.execute(args.scriptName(), ctx);

@@ -1,6 +1,8 @@
 package se.ifmo.blazingzephyr.commands;
 
 import java.sql.SQLException;
+import java.util.Optional;
+
 import se.ifmo.blazingzephyr.ServerContext;
 import se.ifmo.blazingzephyr.model.Organization;
 import se.ifmo.blazingzephyr.model.OrganizationData;
@@ -26,12 +28,30 @@ public class UpdateCommand implements Command<WithIdAndOrganization> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, WithIdAndOrganization args) {
+    public String execute(ServerContext ctx, WithIdAndOrganization args, String login) {
 
         long id = args.id();
         OrganizationData data = args.organization();
 
+        Optional<Organization> org;
         try {
+            org = ctx.database().selectById(id);
+        } catch (SQLException ex) {
+            return "Произошла ошибка во время получения объекта из базы данных: " + ex.getMessage();
+        }
+
+        if (org.isEmpty())
+        {
+            return "Организации с искомым ID не существует.";
+        }
+
+        if (!org.get().getOwner().equals(login))
+        {
+            return "Невозможно изменить объект, не принадлежащий данному пользователю.";
+        }
+
+        try {
+
             boolean success = ctx.database().update(id, data);
             if (!success)
             {
@@ -40,12 +60,6 @@ public class UpdateCommand implements Command<WithIdAndOrganization> {
             }
             else
             {
-                java.util.Optional<Organization> org = ctx
-                    .collection()
-                    .stream()
-                    .filter(o -> o.getId() == args.id())
-                    .findFirst();
-
                 Organization organization = org.get();
                 organization.setName(data.getName())
                     .setName(data.getName())

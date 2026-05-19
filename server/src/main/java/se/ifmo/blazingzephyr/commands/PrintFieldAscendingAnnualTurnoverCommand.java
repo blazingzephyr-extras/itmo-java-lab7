@@ -27,7 +27,7 @@ public class PrintFieldAscendingAnnualTurnoverCommand implements Command<None> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, None args) {
+    public String execute(ServerContext ctx, None args, String login) {
         return String.format(
             "| %-40s |\n|------------------------------------------|\n%s",
             "Годовая выручка в порядке возрастания.",

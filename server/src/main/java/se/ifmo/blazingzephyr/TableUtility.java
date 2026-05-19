@@ -12,10 +12,10 @@ public class TableUtility {
 
     private final static SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy hh:mm:ss");
 
-    static String header = String.format("| %-13s | %-10s | %-8s | %-8s | %-20s | %-10s | %-25s | %-24s | %-20s | %-9s |", 
-        "ID", "Название", "X", "Y", "Дата создания", "Выручка", "Полное наименование", "Тип", "Улица", "Почт. код") + "\n" +
+    static String header = String.format("| %-13s | %-10s | %-8s | %-8s | %-20s | %-10s | %-25s | %-24s | %-20s | %-9s | %-10s |", 
+        "ID", "Название", "X", "Y", "Дата создания", "Выручка", "Полное наименование", "Тип", "Улица", "Почт. код", "Владелец") + "\n" +
         "|---------------|------------|----------|----------|----------------------|" +
-        "------------|---------------------------|--------------------------|----------------------|-----------|";
+        "------------|---------------------------|--------------------------|----------------------|-----------|------------|";
 
     /**
      * Выводит в стандартный поток вывода заголовок таблицы.
@@ -32,7 +32,7 @@ public class TableUtility {
      */
     public static String getEntry(Organization org) {
 
-        String entry = String.format("| %-13s | %-10s | %-8s | %-8s | %-20s | %-10s | %-25s | %-24s | %-20s | %-9s |", 
+        String entry = String.format("| %-13s | %-10s | %-8s | %-8s | %-20s | %-10s | %-25s | %-24s | %-20s | %-9s | %-10s |", 
             org.getId(),
             org.getName(),
             org.getCoordinates().getX(),
@@ -42,7 +42,8 @@ public class TableUtility {
             org.getFullName(),
             org.getOrganizationType(),
             org.getOfficialAddress().getStreet(),
-            org.getOfficialAddress().getZipCode());
+            org.getOfficialAddress().getZipCode(),
+            org.getOwner());
 
         return entry;
     }

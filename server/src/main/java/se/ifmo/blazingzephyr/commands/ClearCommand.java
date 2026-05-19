@@ -26,11 +26,14 @@ public class ClearCommand implements Command<None> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, None args) {
+    public String execute(ServerContext ctx, None args, String login) {
         try {
-            ctx.database().deleteAll();
+            ctx.database().deleteAll(login);
             ctx.collection().clear();
-            return "Элементы коллекции были зачищены.\nПроверьте, используя show. Для дополнительных опций используйте help.";
+            return """
+                Элементы коллекции, которыми владеет нынешний пользователь были зачищены.
+                Проверьте, используя show. Для дополнительных опций используйте help.
+            """;
         } catch (SQLException e) {
             return "Произошла ошибка во время очистки базы данных: " + e.getLocalizedMessage();
         }

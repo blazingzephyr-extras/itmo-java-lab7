@@ -28,7 +28,7 @@ public class MinByName implements Command<None> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, None args) {
+    public String execute(ServerContext ctx, None args, String login) {
 
         Organization org = ctx.collection().stream()
             .min(Organization::compareTo)
