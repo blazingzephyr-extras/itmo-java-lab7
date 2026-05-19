@@ -6,6 +6,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.HashSet;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -111,6 +112,9 @@ public class ScriptManager {
         } catch (IOException e) {
             scriptStack.remove(filePath);
             return "Ошибка чтения скрипта '" + filePath + "': " + e.getMessage();
+        }
+        catch (NoSuchElementException ex) {
+            return "";
         }
 
         scriptStack.remove(filePath);

@@ -67,7 +67,10 @@ public class CommandExecutionUtility {
 
         // Диспетчеризация
         CommandType type = request.getCommandType();
-        if (!this.commands.containsKey(type)) {
+        if (type == CommandType.AUTHORIZE) {
+            return Response.ok("Успешно авторизовано.");
+        }
+        else if (!this.commands.containsKey(type)) {
 
             return Response.error("Такой команды не существует");
         }

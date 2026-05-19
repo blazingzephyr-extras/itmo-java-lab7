@@ -18,15 +18,9 @@ import se.ifmo.blazingzephyr.utility.Serializer;
  */
 public class RegistrationUtility {
     
-    public static boolean register(DatagramSocket socket, InetAddress address, int port, Scanner scanner) {
+    public static boolean register(CommandType type, DatagramSocket socket, InetAddress address, int port, String login, String password) {
 
-        // Запрос на введение логина и пароля.
-        System.out.print("Логин: ");
-        String login = scanner.nextLine().trim();
-        System.out.print("Пароль: ");
-        String password = scanner.nextLine().trim();
-
-        Request request = new Request(CommandType.REGISTER);
+        Request request = new Request(type);
         request.packAuthorization(login, password);
         
         // Сериализуем запрос.
@@ -59,7 +53,7 @@ public class RegistrationUtility {
     
         try {
             Response response = Serializer.deserialize(responseDatagram.getData());
-            System.out.println(response.getMessage() + "\n");
+            System.out.println(response.getMessage());
             return response.isSuccess();
         } catch (Exception e) {
             System.out.println("Ошибка декодирования пакета: " + e.getLocalizedMessage());

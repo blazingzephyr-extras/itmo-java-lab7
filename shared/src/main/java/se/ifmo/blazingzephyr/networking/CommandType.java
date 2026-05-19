@@ -2,6 +2,7 @@ package se.ifmo.blazingzephyr.networking;
 
 public enum CommandType {
     NONE,
+    AUTHORIZE,
     REGISTER,
     ADD,
     UPDATE,

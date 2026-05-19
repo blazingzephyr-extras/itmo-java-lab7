@@ -35,21 +35,50 @@ public class App {
 
             // Проверка регистрации пользователя.
             System.out.println("Вы уже зарегистрированы (y/any)?");
-            String answer = scanner.nextLine().trim().toLowerCase();
-
-            // Регистрация нового пользователя.
-            if (!answer.equals("y") && !RegistrationUtility.register(socket, address, port, scanner)) {
+            String answer;
+            try {
+                answer = scanner.nextLine().trim().toLowerCase();
+            } catch (Exception e) {
                 return;
             }
-            else {
-                System.out.println();
+
+            // Запрос на введение логина и пароля.
+            System.out.print("Логин: ");
+            String login;
+            try {
+                login = scanner.nextLine().trim();
+            } catch (Exception e) {
+                return;
+            }
+
+            System.out.print("Пароль: ");
+            String password;
+            try {
+                password = scanner.nextLine().trim();
+            } catch (Exception e) {
+                return;
+            }
+
+            // Регистрация нового пользователя.
+            if (!answer.equals("y") && !RegistrationUtility.register(CommandType.REGISTER, socket, address, port, login, password)) {
+                return;
+            }
+            // Авторизация.
+            else if (!RegistrationUtility.register(CommandType.AUTHORIZE, socket, address, port, login, password)) {
+                return;
             }
 
             // Сериализация объекта.
             byte[] buffer;
             while (true) {
-                String input = scanner.nextLine().trim();
-                if (input.isEmpty()) continue;
+
+                String input;
+                try {
+                    input = scanner.nextLine().trim();
+                    if (input.isEmpty()) continue;
+                } catch (java.util.NoSuchElementException e) {
+                    break;
+                }
 
                 // Осуществляет валидацию введённого пользователем текста.
                 ValidationResult validation = commands.validate(input, scanner);
@@ -74,11 +103,7 @@ public class App {
                     continue;
                 }
 
-                // Запрос на введение логина и пароля.
-                System.out.print("Логин: ");
-                String login = scanner.nextLine().trim();
-                System.out.print("Пароль: ");
-                String password = scanner.nextLine().trim();
+                // Добавляем в запрос логин и пароль.
                 request.packAuthorization(login, password);
 
                 // Выполнение скрипта.
