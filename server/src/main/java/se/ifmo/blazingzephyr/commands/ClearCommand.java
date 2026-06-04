@@ -3,7 +3,6 @@ package se.ifmo.blazingzephyr.commands;
 import java.sql.SQLException;
 
 import se.ifmo.blazingzephyr.ServerContext;
-import se.ifmo.blazingzephyr.networking.CommandPayload;
 import se.ifmo.blazingzephyr.networking.CommandType;
 import se.ifmo.blazingzephyr.networking.Response;
 import se.ifmo.blazingzephyr.networking.CommandPayload.None;
@@ -30,7 +29,7 @@ public class ClearCommand implements Command<None> {
     public Response execute(ServerContext ctx, None args, String login) {
         try {
             ctx.database().deleteAll(login);
-            ctx.collection().removeIf(o -> o.getOwner() == login);
+            ctx.collection().removeIf(o -> o.getOwner().equals(login));
             return Response.ok("""
                 Элементы коллекции, которыми владеет нынешний пользователь были зачищены.
                 Проверьте, используя show. Для дополнительных опций используйте help.

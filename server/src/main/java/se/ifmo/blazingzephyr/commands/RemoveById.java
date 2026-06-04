@@ -8,7 +8,6 @@ import se.ifmo.blazingzephyr.model.Organization;
 import se.ifmo.blazingzephyr.networking.CommandType;
 import se.ifmo.blazingzephyr.networking.Response;
 import se.ifmo.blazingzephyr.networking.CommandPayload.WithId;
-import se.ifmo.blazingzephyr.TableUtility;
 
 /**
  * Удаляет объект из коллекции по ID.

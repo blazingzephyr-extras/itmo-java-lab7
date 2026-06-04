@@ -1,7 +1,5 @@
 package se.ifmo.blazingzephyr.commands;
 
-import java.sql.SQLException;
-import java.util.Stack;
 import java.util.stream.Collectors;
 import se.ifmo.blazingzephyr.ServerContext;
 import se.ifmo.blazingzephyr.model.Organization;

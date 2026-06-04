@@ -25,8 +25,8 @@ public class ScriptManager {
         StringBuilder scriptOutput = new StringBuilder("---" + filePath + "---\n");
         scriptStack.add(filePath);
 
-        try (BufferedReader reader = FileUtility.ReadBuffer(filePath)) {
-            Scanner scriptScanner = new Scanner(reader);
+        try (BufferedReader reader = FileUtility.ReadBuffer(filePath);
+            Scanner scriptScanner = new Scanner(reader)) {
 
             while (scriptScanner.hasNextLine()) {
                 String line = scriptScanner.nextLine().trim();
@@ -41,10 +41,10 @@ public class ScriptManager {
 
                 Request request = validation.request().get();
 
-                if (request.getCommandType() == CommandType.EXIT) break;
-
-                if (request.getCommandType() == CommandType.HISTORY
-                        || request.getCommandType() == CommandType.HELP) {
+                if (
+                    request.getCommandType() == CommandType.HISTORY
+                    || request.getCommandType() == CommandType.EXIT
+                    || request.getCommandType() == CommandType.HELP) {
                     scriptOutput.append("[").append(request.getCommandType().name().toLowerCase())
                                 .append(" недоступна в скрипте]\n");
                     continue;
@@ -59,7 +59,7 @@ public class ScriptManager {
                 try {
                     Response response = App.sendRequest(request);
                     scriptOutput.append(response.getMessage()).append('\n');
-                } catch (Exception e) {
+                } catch (IOException | ClassNotFoundException e) {
                     scriptOutput.append("Ошибка сети: ").append(e.getMessage()).append('\n');
                 }
             }

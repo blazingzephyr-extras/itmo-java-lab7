@@ -1,5 +1,7 @@
 package se.ifmo.blazingzephyr;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -8,13 +10,13 @@ import javafx.scene.control.Label;
 import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Optional;
 
 import se.ifmo.blazingzephyr.controllers.OrganizationDialogController;
@@ -29,16 +31,22 @@ import se.ifmo.blazingzephyr.utility.Serializer;
  */
 public class App extends Application {
 
-    private static String login;
-    private static String password;
     private static Scene scene;
     private static Popup popup;
 
+    // Application управляет логином и паролем,
+    // чтобы не передавать их отдельно лишний раз в другие классы.
     private static DatagramSocket socket;
+    private static String login;
+    private static String password;
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("auth"), 640, 480);
+
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("auth.fxml"));
+        Parent fxml = loader.load();
+
+        scene = new Scene(fxml);
         stage.setScene(scene);
         stage.show();
     }
@@ -51,6 +59,7 @@ public class App extends Application {
         FXMLLoader loader = new FXMLLoader(App.class.getResource("primary.fxml"));
         Parent fxml = loader.load();
         PrimaryController controller = loader.getController();
+
         controller.setLogin(login);
         controller.loadTable();
         scene.setRoot(fxml);
@@ -61,6 +70,7 @@ public class App extends Application {
     }
 
     public static DatagramSocket getSocket() {
+        // Ленивая инициализация сокета.
         if (socket == null) {
             try {
                 socket = new DatagramSocket();
@@ -75,19 +85,33 @@ public class App extends Application {
     }
 
     public static void showPopup(String message) {
-        
         if (popup == null) {
             popup = new Popup();
-            popup.getContent().add(new Label(message));
-        }
-        else {
-            Label label = (Label)popup.getContent().get(0);
+
+            Label label = new Label(message);
+            label.setStyle(
+                "-fx-background-color: #323232;" +
+                "-fx-text-fill: white;" +
+                "-fx-padding: 12 20 12 20;" +
+                "-fx-background-radius: 8;" +
+                "-fx-font-size: 14px;"
+            );
+
+            popup.getContent().add(label);
+        } else {
+            Label label = (Label) popup.getContent().get(0);
             label.setText(message);
         }
 
         popup.show(scene.getWindow());
-        popup.setAutoHide(true); // Автоматическое скрытие
-        popup.setHideOnEscape(true); // Закрытие при нажатии Esc
+        popup.setAutoHide(true);
+        popup.setHideOnEscape(true);
+
+        // Автоскрытие через 3 секунды
+        new Timeline(new KeyFrame(Duration.seconds(3), e -> {
+            popup.hide();
+            scene.getWindow().requestFocus();
+        })).play();
     }
 
     public static Response sendRequest(Request request) throws IOException, ClassNotFoundException {
@@ -101,6 +125,7 @@ public class App extends Application {
         // Отправляет команду серверу.
         DatagramPacket requestDatagram = new DatagramPacket(buffer, buffer.length, InetAddress.getLocalHost(), App.getPort());
         
+        // Отправка на сервер датаграммы.
         App.getSocket().send(requestDatagram);
     
         // Получает ответ сервера и выводит его.
@@ -113,13 +138,7 @@ public class App extends Application {
         return response;
     }
 
-    private static Parent loadFXML(String fxml) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
-        return fxmlLoader.load();
-    }
-
     public static Optional<OrganizationData> showOrganizationDialog() {
-
         try {
             FXMLLoader loader = new FXMLLoader(App.class.getResource("dialog.fxml"));
             Stage dialog = new Stage();
@@ -130,7 +149,7 @@ public class App extends Application {
             OrganizationDialogController controller = loader.getController();
             return Optional.ofNullable(controller.getResult());
         } catch (Exception e) {
-            App.showPopup("Не удалось открыть окно");
+            App.showPopup("Не удалось открыть окно.");
             return Optional.empty();
         }
     }

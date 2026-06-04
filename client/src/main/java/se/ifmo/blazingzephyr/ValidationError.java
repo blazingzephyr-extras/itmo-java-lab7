@@ -30,9 +30,9 @@ public enum ValidationError {
      */
     FILE_DOES_NOT_EXIST("Искомый файл скрипта не существует."),
     /**
-     * Отсутствует требуется значение.
+     * Необходимые для создания объекта данные не прошли валидацию
      */
-    NO_VALUE("Отсутствует требуется значение.");
+    NO_ITEM("Необходимые для создания объекта данные не прошли валидацию.");
 
     private final String message;
     ValidationError(String message) {

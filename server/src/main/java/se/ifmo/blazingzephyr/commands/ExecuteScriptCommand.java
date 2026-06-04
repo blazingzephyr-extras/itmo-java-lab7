@@ -1,6 +1,5 @@
 package se.ifmo.blazingzephyr.commands;
 
-import se.ifmo.blazingzephyr.networking.CommandPayload;
 import se.ifmo.blazingzephyr.networking.CommandType;
 import se.ifmo.blazingzephyr.networking.Response;
 import se.ifmo.blazingzephyr.networking.CommandPayload.WithScriptName;

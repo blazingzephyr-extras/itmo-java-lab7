@@ -6,7 +6,6 @@ import java.net.InetAddress;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import se.ifmo.blazingzephyr.App;
 import se.ifmo.blazingzephyr.RegistrationUtility;
@@ -27,7 +26,7 @@ public class AuthController {
     private Button loginButton;
 
     @FXML
-    private void flipMode() throws IOException {
+    public void flipMode() throws IOException {
         if (registerNewCheckBox.isSelected()) {
             loginButton.setText("Регистрация");
         } else {
@@ -36,7 +35,7 @@ public class AuthController {
     }
 
     @FXML
-    private void login() throws IOException {
+    public void login() throws IOException {
         String login = loginTextField.getText();
         String password = passwordTextField.getText();
         
@@ -48,7 +47,7 @@ public class AuthController {
             App.authorize(login, password);
         }
         else {
-            App.showPopup("Не удалось " + (register ? "зарегистрироваться." : "войти."));
+            App.showPopup("Не удалось " + (register ? "зарегистрировать пользователя." : "войти."));
         }
     }
 }

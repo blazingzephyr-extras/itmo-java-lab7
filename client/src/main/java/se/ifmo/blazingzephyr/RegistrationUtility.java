@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.Scanner;
 
 import se.ifmo.blazingzephyr.networking.CommandType;
 import se.ifmo.blazingzephyr.networking.Request;

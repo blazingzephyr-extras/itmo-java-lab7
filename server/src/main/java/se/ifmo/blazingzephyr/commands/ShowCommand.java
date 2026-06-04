@@ -1,7 +1,5 @@
 package se.ifmo.blazingzephyr.commands;
 
-import java.sql.SQLException;
-import java.util.Stack;
 import java.util.stream.Collectors;
 import se.ifmo.blazingzephyr.ServerContext;
 
@@ -9,7 +7,6 @@ import se.ifmo.blazingzephyr.networking.CommandType;
 import se.ifmo.blazingzephyr.networking.Response;
 import se.ifmo.blazingzephyr.networking.CommandPayload.None;
 import se.ifmo.blazingzephyr.TableUtility;
-import se.ifmo.blazingzephyr.model.Organization;
 import se.ifmo.blazingzephyr.model.OrganizationData;
 import se.ifmo.blazingzephyr.model.OrganizationWithId;
 
