@@ -5,6 +5,7 @@ import se.ifmo.blazingzephyr.ServerContext;
 import se.ifmo.blazingzephyr.model.Organization;
 import se.ifmo.blazingzephyr.model.OrganizationData;
 import se.ifmo.blazingzephyr.networking.CommandType;
+import se.ifmo.blazingzephyr.networking.Response;
 import se.ifmo.blazingzephyr.networking.CommandPayload.WithOrganization;
 
 /**
@@ -26,19 +27,19 @@ public class AddCommand implements Command<WithOrganization> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, WithOrganization args, String login) {
+    public Response execute(ServerContext ctx, WithOrganization args, String login) {
 
         OrganizationData data = args.organization();
         try {
             Organization newOrg = ctx.database().insert(data, login);
             ctx.collection().add(newOrg);
 
-            return String.format(
+            return Response.ok(String.format(
                 "Организация '%s' успешно добавлена с ID %d.",
                 data.getName(),
-                newOrg.getId());
+                newOrg.getId()));
         } catch (SQLException e) {
-            return "Произошла ошибка во время добавления объекта в базу данных: " + e.getLocalizedMessage();
+            return Response.error("Произошла ошибка во время добавления объекта в базу данных: " + e.getLocalizedMessage());
         }
     }
 }

@@ -6,9 +6,13 @@ import java.util.stream.Collectors;
 import se.ifmo.blazingzephyr.ServerContext;
 
 import se.ifmo.blazingzephyr.networking.CommandType;
+import se.ifmo.blazingzephyr.networking.Response;
 import se.ifmo.blazingzephyr.networking.CommandPayload.None;
 import se.ifmo.blazingzephyr.TableUtility;
 import se.ifmo.blazingzephyr.model.Organization;
+import se.ifmo.blazingzephyr.model.OrganizationData;
+import se.ifmo.blazingzephyr.model.OrganizationWithId;
+
 /**
  * Команда для вывода всех элементов коллекции.
  * @author blazingzephyr
@@ -28,20 +32,39 @@ public class ShowCommand implements Command<None> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, None args, String login) {
+    public Response execute(ServerContext ctx, None args, String login) {
 
         if (ctx.collection().isEmpty()) {
-            return "Коллекция пуста.";
+            return Response.ok("Коллекция пуста.");
         }
 
-        return String.format(
-            "Количество элементов: %d%n%s%n%s",
-            ctx.collection().size(),
-            TableUtility.getHeader(),
+        return Response.ok(
+            String.format(
+                "Количество элементов: %d%n%s%n%s",
+                ctx.collection().size(),
+                TableUtility.getHeader(),
+                ctx.collection()
+                    .stream()
+                    .map(TableUtility::getEntry)
+                    .collect(Collectors.joining("\n"))
+            ),
             ctx.collection()
                 .stream()
-                .map(TableUtility::getEntry)
-                .collect(Collectors.joining("\n"))
+                .map(
+                    o -> new OrganizationWithId(
+                        o.getId(),
+                        new OrganizationData(
+                            o.getName(),
+                            o.getCoordinates(),
+                            o.getAnnualTurnover(),
+                            o.getFullName(),
+                            o.getOrganizationType(),
+                            o.getOfficialAddress()
+                        ),
+                        o.getOwner()
+                    )
+                )
+                .collect(Collectors.toList())
         );
     }
 }

@@ -3,6 +3,7 @@ package se.ifmo.blazingzephyr.commands;
 import se.ifmo.blazingzephyr.ServerContext;
 import se.ifmo.blazingzephyr.networking.CommandPayload;
 import se.ifmo.blazingzephyr.networking.CommandType;
+import se.ifmo.blazingzephyr.networking.Response;
 
 /**
  * Интерфейс команды.
@@ -21,5 +22,5 @@ public interface Command<T extends CommandPayload> extends Cloneable {
      * @param context Контекст исполнения (дополнительные данные комманды).
      * @param payload Аргументы команды.
      */
-    String execute(ServerContext context, T payload, String login);
+    Response execute(ServerContext context, T payload, String login);
 }

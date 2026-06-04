@@ -1,0 +1,24 @@
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+
+<VBox spacing="10" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="se.ifmo.blazingzephyr.controllers.OrganizationDialogController">
+    <Label text="Название:"/>
+    <TextField fx:id="nameField"/>
+    <Label text="X:"/>
+    <TextField fx:id="xField"/>
+    <Label text="Y:"/>
+    <TextField fx:id="yField"/>
+    <Label text="Выручка:"/>
+    <TextField fx:id="annualTurnoverField"/>
+    <Label text="Полное наименование:"/>
+    <TextField fx:id="fullNameField"/>
+    <Label text="Тип:"/>
+    <ChoiceBox fx:id="orgTypeBox"/>
+    <Label text="Адрес:"/>
+    <TextField fx:id="addressField"/>
+    <Label text="Почтовый код:"/>
+    <TextField fx:id="zipCodeField"/>
+    <Button text="OK" onAction="#handleOk"/>
+    <Button text="Отмена" onAction="#handleCancel"/>
+</VBox>

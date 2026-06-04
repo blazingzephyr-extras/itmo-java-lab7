@@ -54,8 +54,13 @@ public enum CommandStub {
         "{--element: Organization}",
         new String[] { "element: Элемент, который требуется добавить в коллекцию." },
         ctx -> {
-            OrganizationData data = new OrganizationData().query(ctx.scanner());
-            return ValidationResult.ok(CommandType.ADD, new CommandPayload.WithOrganization(data));
+            Optional<OrganizationData> data = App.showOrganizationDialog();
+            if (data.isEmpty())
+            {
+                return ValidationResult.error(ValidationError.NO_VALUE);
+            }
+
+            return ValidationResult.ok(CommandType.ADD, new CommandPayload.WithOrganization(data.get()));
         }
     ),
 
@@ -133,8 +138,13 @@ public enum CommandStub {
             if (ctx.args().length < 1) return ValidationResult.error(ValidationError.ID_NEEDED);
             if ((id_arg = Long.parseLong(ctx.args()[0])) < 0) return ValidationResult.error(ValidationError.ID_CANT_BE_NEGATIVE);
 
-            OrganizationData data = new OrganizationData().query(ctx.scanner());
-            return ValidationResult.ok(CommandType.UPDATE, new CommandPayload.WithIdAndOrganization(id_arg, data));
+            Optional<OrganizationData> data = App.showOrganizationDialog();
+            if (data.isEmpty())
+            {
+                return ValidationResult.error(ValidationError.NO_VALUE);
+            }
+            
+            return ValidationResult.ok(CommandType.UPDATE, new CommandPayload.WithIdAndOrganization(id_arg, data.get()));
         }
     ),
 
@@ -143,8 +153,13 @@ public enum CommandStub {
         "{--element: Organization}",
         new String[] { "element: Элемент, который требуется добавить в коллекцию." },
         ctx -> {
-            OrganizationData data = new OrganizationData().query(ctx.scanner());
-            return ValidationResult.ok(CommandType.ADD_IF_MIN, new CommandPayload.WithOrganization(data));
+            Optional<OrganizationData> data = App.showOrganizationDialog();
+            if (data.isEmpty())
+            {
+                return ValidationResult.error(ValidationError.NO_VALUE);
+            }
+
+            return ValidationResult.ok(CommandType.ADD_IF_MIN, new CommandPayload.WithOrganization(data.get()));
         }
     ),
     

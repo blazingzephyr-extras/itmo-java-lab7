@@ -10,6 +10,7 @@ import se.ifmo.blazingzephyr.ServerContext;
 import se.ifmo.blazingzephyr.TableUtility;
 import se.ifmo.blazingzephyr.model.Organization;
 import se.ifmo.blazingzephyr.networking.CommandType;
+import se.ifmo.blazingzephyr.networking.Response;
 import se.ifmo.blazingzephyr.networking.CommandPayload.None;
 
 /**
@@ -31,8 +32,8 @@ public class ReorderCommand implements Command<None> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, None args, String login) {
-        return String.format(
+    public Response execute(ServerContext ctx, None args, String login) {
+        return Response.ok(String.format(
             """
             Порядок элементов в таблице реляционной базы данных не имеет значения.
             Соответственно, его нельзя обратить.
@@ -46,6 +47,6 @@ public class ReorderCommand implements Command<None> {
                 .sorted(Comparator.reverseOrder())
                 .map(TableUtility::getEntry)
                 .collect(Collectors.joining("\n"))
-        );
+        ));
     }
 }

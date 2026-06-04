@@ -6,6 +6,7 @@ import java.util.Optional;
 import se.ifmo.blazingzephyr.ServerContext;
 import se.ifmo.blazingzephyr.model.Organization;
 import se.ifmo.blazingzephyr.networking.CommandType;
+import se.ifmo.blazingzephyr.networking.Response;
 import se.ifmo.blazingzephyr.networking.CommandPayload.None;
 import se.ifmo.blazingzephyr.TableUtility;
 
@@ -28,15 +29,15 @@ public class MinByName implements Command<None> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, None args, String login) {
+    public Response execute(ServerContext ctx, None args, String login) {
 
         Organization org = ctx.collection().stream()
             .min(Organization::compareTo)
             .orElse(null);
 
-        return String.format(
+        return Response.ok(String.format(
             "Элемент с минимальным значением name.\n%s\n%s",
             TableUtility.getHeader(),
-            TableUtility.getEntry(org));
+            TableUtility.getEntry(org)));
     }
 }

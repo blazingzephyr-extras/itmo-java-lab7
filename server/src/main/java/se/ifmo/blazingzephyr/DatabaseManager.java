@@ -369,7 +369,7 @@ public class DatabaseManager {
      */
     public void deleteAll(String login) throws SQLException {
         try (Statement st = connection.createStatement()) {
-            st.executeUpdate("DELETE * FROM organizations WHERE owner='" + login + "'");
+            st.executeUpdate("DELETE FROM organizations WHERE owner='" + login + "'");
         }
     }
 

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import se.ifmo.blazingzephyr.ServerContext;
 import se.ifmo.blazingzephyr.networking.CommandPayload.None;
 import se.ifmo.blazingzephyr.networking.CommandType;
+import se.ifmo.blazingzephyr.networking.Response;
 
 /**
  * Выводит справку о коллекции.
@@ -28,7 +29,7 @@ public class InfoCommand implements Command<None> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, None args, String login) {
+    public Response execute(ServerContext ctx, None args, String login) {
 
         String creationTime;
         try {
@@ -69,11 +70,11 @@ public class InfoCommand implements Command<None> {
             size = "невозможно определить количество элементов. " + ex.getMessage();
         }
         
-        return String.format(
+        return Response.ok(String.format(
             "Тип элементов коллекции: %s\nДата инициализации: %s\nКоличество элементов: %s",
             collectionType,
             creationTime,
             size
-        );
+        ));
     }
 }

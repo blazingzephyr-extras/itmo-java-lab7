@@ -1,5 +1,7 @@
 plugins {
     id 'java'
+    id 'application'                              // ← добавь это
+    id 'org.openjfx.javafxplugin' version '0.1.0'
 }
 
 group = 'se.ifmo.blazingzephyr'
@@ -18,4 +20,13 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+javafx {
+    version = '17'
+    modules = ['javafx.controls', 'javafx.fxml']
+}
+
+application {
+    mainClass = 'se.ifmo.blazingzephyr.App' // твой главный класс
 }

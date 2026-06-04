@@ -28,7 +28,11 @@ public enum ValidationError {
     /**
      * Искомый файл скрипта не существует.
      */
-    FILE_DOES_NOT_EXIST("Искомый файл скрипта не существует.");
+    FILE_DOES_NOT_EXIST("Искомый файл скрипта не существует."),
+    /**
+     * Отсутствует требуется значение.
+     */
+    NO_VALUE("Отсутствует требуется значение.");
 
     private final String message;
     ValidationError(String message) {

@@ -17,6 +17,22 @@ public class OrganizationData implements Serializable {
     private OrganizationType organizationType;
     private Address officialAddress;
 
+    public OrganizationData(
+        String name,
+        Coordinates coordinates,
+        double annualTurnover,
+        String fullName,
+        OrganizationType organizationType,
+        Address officialAddress)
+    {
+        this.name = name;
+        this.coordinates = coordinates;
+        this.annualTurnover = annualTurnover;
+        this.fullName = fullName;
+        this.organizationType = organizationType;
+        this.officialAddress = officialAddress;
+    }
+
     /**
      * Возвращает наименование организации.
      * @return Строка имени.

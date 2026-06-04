@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import se.ifmo.blazingzephyr.ServerContext;
 import se.ifmo.blazingzephyr.model.Organization;
 import se.ifmo.blazingzephyr.networking.CommandType;
+import se.ifmo.blazingzephyr.networking.Response;
 import se.ifmo.blazingzephyr.networking.CommandPayload.None;
 
 /**
@@ -27,8 +28,8 @@ public class PrintFieldAscendingAnnualTurnoverCommand implements Command<None> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, None args, String login) {
-        return String.format(
+    public Response execute(ServerContext ctx, None args, String login) {
+        return Response.ok(String.format(
             "| %-40s |\n|------------------------------------------|\n%s",
             "Годовая выручка в порядке возрастания.",
             ctx.collection().stream()
@@ -36,6 +37,6 @@ public class PrintFieldAscendingAnnualTurnoverCommand implements Command<None> {
                 .sorted(Double::compareTo)
                 .map(t -> String.format("| %-40.2f | ", t))
                 .collect(Collectors.joining("\n"))
-        );
+        ));
     }
 }

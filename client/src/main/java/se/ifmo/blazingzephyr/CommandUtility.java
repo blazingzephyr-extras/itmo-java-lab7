@@ -3,7 +3,6 @@ package se.ifmo.blazingzephyr;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 
 /**
  * Управляет исполнением команд.
@@ -31,7 +30,7 @@ public class CommandUtility {
      * @return Возвращает результат исполнения программы.
      * @throws Exception Ошибка исполнения команды.
      */
-    public ValidationResult validate(String input, Scanner scanner)
+    public ValidationResult validate(String input)
     {
         String[] parts = input.trim().split(" ");
         String cmd = parts[0].toLowerCase();
@@ -43,7 +42,7 @@ public class CommandUtility {
         }
         else {
             CommandStub command = commands.get(cmd);
-            return command.getValidator().apply(new ValidationContext(scanner, arguments));
+            return command.getValidator().apply(new ValidationContext(arguments));
         }
     }
 }

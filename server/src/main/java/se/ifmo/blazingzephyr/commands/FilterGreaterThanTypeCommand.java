@@ -6,6 +6,7 @@ import se.ifmo.blazingzephyr.ServerContext;
 import se.ifmo.blazingzephyr.TableUtility;
 import se.ifmo.blazingzephyr.networking.CommandPayload.WithOrganizationType;
 import se.ifmo.blazingzephyr.networking.CommandType;
+import se.ifmo.blazingzephyr.networking.Response;
 
 /**
  * Выводит элементы коллекции, чей тип больше, чем искомый.
@@ -26,7 +27,7 @@ public class FilterGreaterThanTypeCommand implements Command<WithOrganizationTyp
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, WithOrganizationType args, String login) {
+    public Response execute(ServerContext ctx, WithOrganizationType args, String login) {
 
         String result = ctx.collection().stream()
             .filter(org -> org.getOrganizationType() != null && org.getOrganizationType().compareTo(args.organizationType()) > 0)
@@ -34,12 +35,12 @@ public class FilterGreaterThanTypeCommand implements Command<WithOrganizationTyp
             .collect(Collectors.joining("\n"));
 
         if (result.isEmpty()) {
-            return "Элементов с типом больше " + args.organizationType() + " не найдено.";
+            return Response.ok("Элементов с типом больше " + args.organizationType() + " не найдено.");
         }
 
-        return String.format("Элементы с типом, больше чем %s:%n%s%n%s",
+        return Response.ok(String.format("Элементы с типом, больше чем %s:%n%s%n%s",
             args.organizationType(),
             TableUtility.getHeader(),
-            result);
+            result));
     }
 }

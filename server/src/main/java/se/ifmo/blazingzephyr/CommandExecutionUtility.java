@@ -75,8 +75,7 @@ public class CommandExecutionUtility {
             return Response.error("Такой команды не существует");
         }
         else {
-            String output = commands.get(type).execute(ctx, request.getPayload(), request.getLogin());
-            return Response.ok(output);
+            return commands.get(type).execute(ctx, request.getPayload(), request.getLogin());
         }
     }
 }

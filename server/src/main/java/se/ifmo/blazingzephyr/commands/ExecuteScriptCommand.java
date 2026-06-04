@@ -2,6 +2,7 @@ package se.ifmo.blazingzephyr.commands;
 
 import se.ifmo.blazingzephyr.networking.CommandPayload;
 import se.ifmo.blazingzephyr.networking.CommandType;
+import se.ifmo.blazingzephyr.networking.Response;
 import se.ifmo.blazingzephyr.networking.CommandPayload.WithScriptName;
 // import se.ifmo.blazingzephyr.ScriptManager;
 import se.ifmo.blazingzephyr.ServerContext;
@@ -25,9 +26,9 @@ public class ExecuteScriptCommand implements Command<WithScriptName> {
      * {@inheritDoc}
      */
     @Override
-    public String execute(ServerContext ctx, WithScriptName args, String login) {
+    public Response execute(ServerContext ctx, WithScriptName args, String login) {
 
-        return "Не выполняется на сервере.";
+        return Response.error("Не выполняется на сервере.");
         // return ScriptManager.execute(args.scriptName(), ctx);
     }
 }
