@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TextField?>
@@ -21,8 +22,13 @@
    <children>
       <VBox prefWidth="350">
          <children>
-            <Label fx:id="lbl1" text="Нынешний пользователь:" />
+            <Label fx:id="userLoginLabel" text="Нынешний пользователь:" />
             <Label fx:id="userLogin" text="" />
+            <Label fx:id="filterLabel" text="" />
+
+            <TextField fx:id="filterField" text="" />
+            <ChoiceBox fx:id="filterColumnBox" />
+
             <Canvas fx:id="canvas" width="350" height="350"/>
          </children>
       </VBox>
@@ -43,7 +49,7 @@
       <VBox prefWidth="400">
          <children>
             <HBox>
-               <Button text="add" onAction="#add" />
+               <Button fx:id="" text="add" onAction="#add" />
                <Button text="info" onAction="#info" />
                <Button text="clear" onAction="#clear" />
             </HBox>

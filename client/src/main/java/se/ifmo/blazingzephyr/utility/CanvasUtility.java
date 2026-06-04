@@ -105,7 +105,10 @@ public class CanvasUtility {
                 size += 0.05;
                 gc.setFill(color);
                 gc.fillOval(x, y, size, size);
-                // if (size >= targetSize) stop();
+                
+                if (size >= targetSize) {
+                    stop();
+                }
             }
         };
         timer.start();

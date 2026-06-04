@@ -3,22 +3,22 @@
 
 <VBox spacing="10" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="se.ifmo.blazingzephyr.controllers.OrganizationDialogController">
-    <Label text="Название:"/>
+    <Label fx:id="nameLabel" text="Название:"/>
     <TextField fx:id="nameField"/>
-    <Label text="X:"/>
+    <Label fx:id="xLabel" text="X:"/>
     <TextField fx:id="xField"/>
-    <Label text="Y:"/>
+    <Label fx:id="yLabel" text="Y:"/>
     <TextField fx:id="yField"/>
-    <Label text="Выручка:"/>
+    <Label fx:id="annualTurnoverLabel" text="Выручка:"/>
     <TextField fx:id="annualTurnoverField"/>
-    <Label text="Полное наименование:"/>
+    <Label fx:id="fullNameLabel" text="Полное наименование:"/>
     <TextField fx:id="fullNameField"/>
-    <Label text="Тип:"/>
+    <Label fx:id="orgTypeLabel" text="Тип:"/>
     <ChoiceBox fx:id="orgTypeBox"/>
-    <Label text="Адрес:"/>
+    <Label fx:id="addressLabel" text="Адрес:"/>
     <TextField fx:id="addressField"/>
-    <Label text="Почтовый код:"/>
+    <Label fx:id="zipCodeLabel" text="Почтовый код:"/>
     <TextField fx:id="zipCodeField"/>
-    <Button text="OK" onAction="#handleOk"/>
-    <Button text="Отмена" onAction="#handleCancel"/>
+    <Button fx:id="okButton" text="OK" onAction="#handleOk"/>
+    <Button fx:id="cancelButton" text="Отмена" onAction="#handleCancel"/>
 </VBox>
