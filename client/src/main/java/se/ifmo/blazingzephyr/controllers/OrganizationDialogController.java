@@ -49,5 +49,20 @@ public class OrganizationDialogController {
         ((Stage) nameField.getScene().getWindow()).close();
     }
 
+    public void prefill(OrganizationData data) {
+        nameField.setText(data.getName());
+        xField.setText(String.valueOf(data.getCoordinates().getX()));
+        yField.setText(String.valueOf(data.getCoordinates().getY()));
+        annualTurnoverField.setText(String.valueOf(data.getAnnualTurnover()));
+        fullNameField.setText(data.getFullName() != null ? data.getFullName() : "");
+        orgTypeBox.setValue(data.getOrganizationType());
+        if (data.getOfficialAddress() != null) {
+            addressField.setText(data.getOfficialAddress().getStreet() != null
+                ? data.getOfficialAddress().getStreet() : "");
+            zipCodeField.setText(data.getOfficialAddress().getZipCode() != null
+                ? data.getOfficialAddress().getZipCode() : "");
+        }
+}
+
     public OrganizationData getResult() { return result; }
 }

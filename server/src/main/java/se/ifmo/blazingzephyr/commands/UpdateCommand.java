@@ -61,7 +61,7 @@ public class UpdateCommand implements Command<WithIdAndOrganization> {
             }
             else
             {
-                Organization organization = org.get();
+                Organization organization = ctx.collection().stream().filter(o -> o.getId() == id).findFirst().get();
                 organization.setName(data.getName())
                     .setName(data.getName())
                     .setCoordinates(data.getCoordinates())

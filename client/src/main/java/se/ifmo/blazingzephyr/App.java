@@ -104,7 +104,7 @@ public class App extends Application {
         App.getSocket().send(requestDatagram);
     
         // Получает ответ сервера и выводит его.
-        buffer = new byte[3000];
+        buffer = new byte[65507];
         
         DatagramPacket responseDatagram = new DatagramPacket(buffer, buffer.length);
         App.getSocket().receive(responseDatagram);
