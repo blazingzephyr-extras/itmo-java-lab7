@@ -42,8 +42,11 @@
       </TableView>
       <VBox prefWidth="400">
          <children>
-            <TextField fx:id="console"/>
-            <Button text="Отправить" onAction="#send" />
+            <HBox>
+               <Button text="add" onAction="#add" />
+               <Button text="info" onAction="#info" />
+               <Button text="clear" onAction="#clear" />
+            </HBox>
             <TextArea fx:id="out" editable="false" wrapText="true"
                      prefHeight="700" prefWidth="400"
                      maxHeight="700"/>

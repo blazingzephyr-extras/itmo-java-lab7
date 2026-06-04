@@ -142,6 +142,27 @@ public class PrimaryController {
             App.showPopup("Ошибка при загрузке данных с сервера. " + e.getLocalizedMessage());
         }
     }
+
+    @FXML
+    public void add() {
+        
+        String input = "add";
+        sendReq(input);
+    }
+
+    @FXML
+    public void info() {
+        
+        String input = "info";
+        sendReq(input);
+    }
+
+    @FXML
+    public void clear() {
+        
+        String input = "clear";
+        sendReq(input);
+    }
     
     // Отправляет реквест.
     @FXML
@@ -150,6 +171,11 @@ public class PrimaryController {
         String input = console.getText().trim();
         if (input.isEmpty()) return;
         console.clear();
+        sendReq(input);
+    }
+
+    // Отправляет реквест.
+    public void sendReq(String input) {
 
         ValidationResult validation = commands.validate(input);
         if (validation.isError()) {
