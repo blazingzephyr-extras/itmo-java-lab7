@@ -14,6 +14,8 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Stack;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.postgresql.util.PGobject;
 
 import se.ifmo.blazingzephyr.model.Address;
@@ -23,15 +25,20 @@ import se.ifmo.blazingzephyr.model.OrganizationData;
 import se.ifmo.blazingzephyr.model.OrganizationType;
 
 public class DatabaseManager {
-    
+
+    private static final Logger log = LogManager.getLogger(DatabaseManager.class);
+
     private final Connection connection;
-    
+
     public DatabaseManager(String url, Properties properties) throws SQLException {
+        log.debug("Попытка установить соединение с БД: {}", url);
         this.connection = DriverManager.getConnection(url, properties);
+        log.info("Соединение с БД установлено.");
         createTableOnStartup();
     }
 
     private void createTableOnStartup() throws SQLException {
+        log.debug("Проверка и создание схемы БД (таблицы organizations, users)...");
         String sql = """
             DO $$ BEGIN
                 CREATE TYPE ORGANIZATIONTYPE AS ENUM (
@@ -70,40 +77,47 @@ public class DatabaseManager {
         try (Statement st = connection.createStatement()) {
             st.executeUpdate(sql);
         }
+        log.info("Схема БД успешно проверена/создана.");
     }
 
     /**
      * Регистрация нового пользователя.
-     * @param login пользовательский логин.
-     * @param password пользовательский пароль.
-     * @return true, если удалось зарегистрировать нового пользователя, иначе false.
-     * @throws SQLException
      */
     public boolean registerUser(String login, String password) throws SQLException {
+        log.debug("Попытка регистрации пользователя: '{}'", login);
         String hash = hashMD2(password);
         String sql = "INSERT INTO users (login, password) VALUES (?, ?) ON CONFLICT DO NOTHING";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, login);
             ps.setString(2, hash);
-            return ps.executeUpdate() > 0;
+            boolean registered = ps.executeUpdate() > 0;
+            if (registered) {
+                log.info("Пользователь '{}' успешно зарегистрирован.", login);
+            } else {
+                log.warn("Попытка регистрации с уже занятым логином: '{}'", login);
+            }
+            return registered;
         }
     }
 
     /**
-     * Проверка логина/пароля
-     * @param login пользовательский логин.
-     * @param password пользовательский пароль.
-     * @return true, если удалось авторизоваться, false в противном случае.
-     * @throws SQLException
+     * Проверка логина/пароля.
      */
     public boolean authenticate(String login, String password) throws SQLException {
+        log.debug("Попытка аутентификации пользователя: '{}'", login);
         String hash = hashMD2(password);
         String sql = "SELECT 1 FROM users WHERE login=? AND password=?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, login);
             ps.setString(2, hash);
             ResultSet rs = ps.executeQuery();
-            return rs.next();
+            boolean ok = rs.next();
+            if (ok) {
+                log.info("Пользователь '{}' успешно аутентифицирован.", login);
+            } else {
+                log.warn("Неудачная попытка аутентификации для логина: '{}'", login);
+            }
+            return ok;
         }
     }
 
@@ -116,67 +130,68 @@ public class DatabaseManager {
             for (byte b : hash) sb.append(String.format("%02x", b));
             return sb.toString();
         } catch (NoSuchAlgorithmException e) {
+            log.error("Алгоритм MD2 недоступен.", e);
             throw new RuntimeException(e);
         }
     }
 
     /**
      * Получает организацию по ID с БД.
-     * @return Организация.
      */
     public Optional<Organization> selectById(long id) throws SQLException {
+        log.debug("Запрос организации по ID={}.", id);
         String sql = "SELECT * FROM organizations WHERE id=?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setLong(1, id);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
+                log.debug("Организация с ID={} найдена.", id);
                 return Optional.of(mapRow(rs));
             }
         }
-
+        log.debug("Организация с ID={} не найдена.", id);
         return Optional.empty();
     }
 
     /**
      * Получает список организаций с БД.
-     * @return Организации.
      */
     public Stack<Organization> selectAll() throws SQLException {
+        log.debug("Запрос всех организаций из БД.");
         Stack<Organization> collection = new Stack<>();
         String sql = "SELECT * FROM organizations";
-
         try (Statement st = connection.createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
+             ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 collection.push(mapRow(rs));
             }
         }
+        log.info("Получено {} организаций из БД.", collection.size());
         return collection;
     }
 
     /**
      * Получает список организаций в обратном порядке.
-     * @return Организации.
      */
     public Stack<Organization> selectAllReverse() throws SQLException {
+        log.debug("Запрос всех организаций в обратном порядке.");
         Stack<Organization> collection = new Stack<>();
         String sql = "SELECT * FROM organizations ORDER BY id DESC";
-
         try (Statement st = connection.createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
+             ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 collection.push(mapRow(rs));
             }
         }
+        log.debug("Получено {} организаций (обратный порядок).", collection.size());
         return collection;
     }
 
     /**
-     * Получает список организаций, тип которых больше указанного, с сервера.
-     * @param type Тип организации, с которым будут сравнивать.
-     * @return Организации.
+     * Получает список организаций, тип которых больше указанного.
      */
     public Stack<Organization> selectAllGreaterThanType(OrganizationType type) throws SQLException {
+        log.debug("Запрос организаций с типом > {}.", type);
         String sql = """
             SELECT * FROM organizations
             WHERE
@@ -197,17 +212,15 @@ public class DatabaseManager {
                 result.add(mapRow(rs));
             }
         }
-
+        log.debug("Найдено {} организаций с типом > {}.", result.size(), type);
         return result;
     }
 
     /**
      * Пытается получить время создания таблицы.
-     * Может быть неубедительным.
-     * 
-     * @return дата и время создания таблицы организаций.
      */
     public Optional<Timestamp> creationDate() throws SQLException {
+        log.debug("Запрос даты создания таблицы organizations.");
         String sql = """
             SELECT creation
             FROM pg_stat_file(
@@ -225,20 +238,22 @@ public class DatabaseManager {
             """;
 
         try (Statement st = connection.createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
-                while (rs.next()) {
-                    return Optional.of(rs.getTimestamp("creation"));
-                }
-
-                return Optional.empty();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) {
+                Timestamp ts = rs.getTimestamp("creation");
+                log.debug("Дата создания таблицы: {}.", ts);
+                return Optional.of(ts);
+            }
+            log.warn("Не удалось определить дату создания таблицы organizations.");
+            return Optional.empty();
         }
     }
 
     /**
      * Возвращает колонки таблицы.
-     * @return название колонок + их тип.
      */
     public Stack<String> getColumns() throws SQLException {
+        log.debug("Запрос метаданных колонок таблицы organizations.");
         String sql = """
             SELECT COLUMN_NAME, DATA_TYPE
             FROM INFORMATION_SCHEMA.COLUMNS
@@ -247,49 +262,52 @@ public class DatabaseManager {
 
         Stack<String> rows = new Stack<>();
         try (Statement st = connection.createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
-                while (rs.next()) {
-                    rows.add(rs.getString("COLUMN_NAME") + ": " + rs.getString("DATA_TYPE"));
-                }
-
-                return rows;
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) {
+                rows.add(rs.getString("COLUMN_NAME") + ": " + rs.getString("DATA_TYPE"));
+            }
+            log.debug("Получено {} колонок.", rows.size());
+            return rows;
         }
     }
 
     /**
      * Возвращает число элементов в таблице организаций.
-     * @return число элементов.
      */
     public Optional<Long> count() throws SQLException {
+        log.debug("Запрос количества организаций в БД.");
         String sql = "SELECT COUNT(*) FROM organizations";
         try (Statement st = connection.createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
-                while (rs.next()) {
-                    return Optional.of(rs.getLong("count"));
-                }
-
-                return Optional.empty();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) {
+                long n = rs.getLong("count");
+                log.debug("Количество организаций: {}.", n);
+                return Optional.of(n);
+            }
+            return Optional.empty();
         }
     }
 
     public Optional<Organization> getMinByName() throws SQLException {
+        log.debug("Запрос организации с минимальным именем.");
         String sql = "SELECT * FROM organizations ORDER BY name ASC LIMIT 1";
         try (Statement st = connection.createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
-                while (rs.next()) {
-                    return Optional.of(mapRow(rs));
-                }
-
-                return Optional.empty();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) {
+                Organization org = mapRow(rs);
+                log.debug("Организация с минимальным именем: '{}' (ID={}).", org.getName(), org.getId());
+                return Optional.of(org);
+            }
+            log.debug("Таблица организаций пуста — минимальный элемент не найден.");
+            return Optional.empty();
         }
     }
 
     /**
      * Добавляет новую организацию в таблицу.
-     * @param data Данные организации, которую необходимо добавить.
-     * @return Добавленный элемент.
      */
     public Organization insert(OrganizationData data, String owner) throws SQLException {
+        log.debug("Вставка новой организации '{}' для пользователя '{}'.", data.getName(), owner);
         String sql = """
             INSERT INTO organizations
               (name, coord_x, coord_y, annual_turnover,
@@ -315,16 +333,17 @@ public class DatabaseManager {
 
             ResultSet rs = ps.executeQuery();
             rs.next();
-            return mapRow(rs);
+            Organization org = mapRow(rs);
+            log.info("Организация '{}' успешно добавлена (ID={}, owner='{}').", org.getName(), org.getId(), owner);
+            return org;
         }
     }
 
     /**
      * Обновляет существующий объект БД по ID.
-     * @param id ID объекта, который требуется обновить.
-     * @param data Данные объекта, который требуется обновить.
      */
     public boolean update(long id, OrganizationData data) throws SQLException {
+        log.debug("Обновление организации ID={}.", id);
         String sql = """
             UPDATE organizations SET
               name=?, coord_x=?, coord_y=?,
@@ -347,39 +366,46 @@ public class DatabaseManager {
             ps.setString(7, data.getOfficialAddress().getStreet());
             ps.setString(8, data.getOfficialAddress().getZipCode());
             ps.setLong(9, id);
-            return ps.executeUpdate() > 0;
+            boolean updated = ps.executeUpdate() > 0;
+            if (updated) {
+                log.info("Организация ID={} успешно обновлена.", id);
+            } else {
+                log.warn("Организация ID={} не найдена для обновления.", id);
+            }
+            return updated;
         }
     }
 
     /**
-     * Удаляет запись в таблицу по её ID.
-     * @param id ID организации, которую требуется удалить из базы данных.
-     * @return true, если операция успешна, в противном случае false.
+     * Удаляет запись в таблице по её ID.
      */
     public boolean deleteById(long id) throws SQLException {
+        log.debug("Удаление организации ID={}.", id);
         try (PreparedStatement ps = connection.prepareStatement(
                 "DELETE FROM organizations WHERE id=?")) {
             ps.setLong(1, id);
-            return ps.executeUpdate() > 0;
+            boolean deleted = ps.executeUpdate() > 0;
+            if (deleted) {
+                log.info("Организация ID={} успешно удалена.", id);
+            } else {
+                log.warn("Организация ID={} не найдена для удаления.", id);
+            }
+            return deleted;
         }
     }
 
     /**
-     * Очищает таблицу.
+     * Удаляет все организации указанного владельца.
      */
     public void deleteAll(String login) throws SQLException {
+        log.debug("Удаление всех организаций пользователя '{}'.", login);
         try (Statement st = connection.createStatement()) {
-            st.executeUpdate("DELETE FROM organizations WHERE owner='" + login + "'");
+            int affected = st.executeUpdate("DELETE FROM organizations WHERE owner='" + login + "'");
+            log.info("Удалено {} организаций пользователя '{}'.", affected, login);
         }
     }
 
-    /**
-     * Очищает таблицу.
-     * @param rs Результаты запроса к базе данных.
-     * @return Объект организации.
-     */
     private Organization mapRow(ResultSet rs) throws SQLException {
-
         Organization org = new Organization(
             rs.getLong("id"),
             rs.getTimestamp("creation_date")
@@ -391,7 +417,7 @@ public class DatabaseManager {
                 .setX(rs.getDouble("coord_x"))
                 .setY(rs.getFloat("coord_y"))
         );
-        
+
         org.setAnnualTurnover(rs.getDouble("annual_turnover"));
         org.setFullName(rs.getString("full_name"));
         org.setOrganizationType(OrganizationType.valueOf(rs.getString("organization_type")));
@@ -399,11 +425,10 @@ public class DatabaseManager {
         org.setOfficialAddress(
             new Address()
                 .setStreet(rs.getString("street"))
-                .setZipCode(rs.getString("zip_code"))   
+                .setZipCode(rs.getString("zip_code"))
         );
 
         org.setOwner(rs.getString("owner"));
-
         return org;
     }
 
@@ -411,6 +436,8 @@ public class DatabaseManager {
      * Закрывает подключение к базе данных.
      */
     public void close() throws SQLException {
+        log.info("Закрытие соединения с БД.");
         connection.close();
+        log.debug("Соединение с БД закрыто.");
     }
 }
