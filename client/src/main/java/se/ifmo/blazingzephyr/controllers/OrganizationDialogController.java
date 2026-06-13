@@ -17,6 +17,7 @@ public class OrganizationDialogController {
     @FXML private TextField addressField, zipCodeField;
     @FXML private ChoiceBox<OrganizationType> orgTypeBox;
 
+    // Метки полей
     @FXML private Label nameLabel, xLabel, yLabel;
     @FXML private Label annualTurnoverLabel, fullNameLabel;
     @FXML private Label orgTypeLabel, addressLabel, zipCodeLabel;
@@ -34,7 +35,7 @@ public class OrganizationDialogController {
         applyLocale();
     }
 
-    // Обновляет все тексты полей согласно текущей локали.
+    /** Обновляет все тексты полей согласно текущей локали. */
     private void applyLocale() {
         nameLabel.setText(lm.get("dialog.name"));
         xLabel.setText(lm.get("dialog.x"));
@@ -72,8 +73,9 @@ public class OrganizationDialogController {
             return;
         }
 
+        // .trim() никогда не возвращает null — проверяем на пустоту
         String street = addressField.getText().trim();
-        if (street == null) {
+        if (street.isEmpty()) {
             App.showPopup(lm.get("error.street.null"));
             return;
         }

@@ -35,13 +35,13 @@ public class InfoCommand implements Command<None> {
         try {
             Optional<Timestamp> time = ctx.database().creationDate();
             if (time.isEmpty()) {
-                creationTime = "невозможно определить.";
+                creationTime = "???";
             }
             else {
                 creationTime = String.valueOf(time.get());
             }
         } catch (SQLException ex) {
-            creationTime = "невозможно определить. " + ex.getMessage();
+            creationTime = "???. " + ex.getMessage();
         }
 
         String collectionType;
@@ -54,27 +54,27 @@ public class InfoCommand implements Command<None> {
                 .collect(Collectors.joining(";\n"));
 
         } catch (SQLException ex) {
-            collectionType = "невозможно определить. " + ex.getMessage();
+            collectionType = "???. " + ex.getMessage();
         }
 
         String size;
         try {
             Optional<Long> count = ctx.database().count();
             if (count.isEmpty()) {
-                size = "невозможно определить.";
+                size = "???";
             }
             else {
                 size = String.valueOf(count.get());
             }
         } catch (SQLException ex) {
-            size = "невозможно определить количество элементов. " + ex.getMessage();
+            size = "???. " + ex.getMessage();
         }
         
-        return Response.ok(String.format(
-            "Тип элементов коллекции: %s\nДата инициализации: %s\nКоличество элементов: %s",
+        return Response.ok(
+            "info.success",
             collectionType,
             creationTime,
             size
-        ));
+        );
     }
 }

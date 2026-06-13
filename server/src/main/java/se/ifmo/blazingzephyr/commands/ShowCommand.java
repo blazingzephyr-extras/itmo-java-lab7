@@ -32,12 +32,12 @@ public class ShowCommand implements Command<None> {
     public Response execute(ServerContext ctx, None args, String login) {
 
         if (ctx.collection().isEmpty()) {
-            return Response.ok("Коллекция пуста.");
+            return Response.ok("show.empty");
         }
 
         return Response.ok(
             String.format(
-                "Количество элементов: %d%n%s%n%s",
+                "show.success",
                 ctx.collection().size(),
                 TableUtility.getHeader(),
                 ctx.collection()

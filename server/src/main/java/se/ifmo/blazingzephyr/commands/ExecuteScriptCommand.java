@@ -27,7 +27,7 @@ public class ExecuteScriptCommand implements Command<WithScriptName> {
     @Override
     public Response execute(ServerContext ctx, WithScriptName args, String login) {
 
-        return Response.error("Не выполняется на сервере.");
+        return Response.error("execute_script.error");
         // return ScriptManager.execute(args.scriptName(), ctx);
     }
 }

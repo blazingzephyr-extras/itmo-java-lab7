@@ -29,13 +29,8 @@ public class ReorderCommand implements Command<None> {
      */
     @Override
     public Response execute(ServerContext ctx, None args, String login) {
-        return Response.ok(String.format(
-            """
-            Порядок элементов в таблице реляционной базы данных не имеет значения.
-            Соответственно, его нельзя обратить.
-            Напечатаю коллекцию в обратном порядке.
-            Количество организаций: %d%n%s%n%s
-            """,
+        return Response.ok(
+            "reorder.message",
             ctx.collection().size(),
             TableUtility.getHeader(),
             ctx.collection()
@@ -43,6 +38,6 @@ public class ReorderCommand implements Command<None> {
                 .sorted(Comparator.reverseOrder())
                 .map(TableUtility::getEntry)
                 .collect(Collectors.joining("\n"))
-        ));
+        );
     }
 }

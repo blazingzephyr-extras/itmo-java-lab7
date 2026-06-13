@@ -28,8 +28,8 @@ public class CanvasUtility {
                 my = event.getY();
 
         for (OrganizationWithId org : view.getItems()) {
-                double x = org.getData().getCoordinates().getX() % canvas.getWidth();
-                double y = org.getData().getCoordinates().getY() % canvas.getHeight();
+                double x = toCanvasCoord(org.getData().getCoordinates().getX(), canvas.getWidth());
+                double y = toCanvasCoord(org.getData().getCoordinates().getY(), canvas.getHeight());
                 double size = 20;
 
                 // Проверяем попадание в круг
@@ -61,6 +61,22 @@ public class CanvasUtility {
         return userColors.computeIfAbsent(owner, k -> palette.get(userColors.size() % palette.size()));
     }
 
+    /**
+     * Переводит координату модели в координату канваса.
+     *
+     * Проблема: координаты объектов могут быть отрицательными или очень большими.
+     * Java-остаток (%) от отрицательного числа отрицателен — точка уходит
+     * за пределы канваса и рисуется поверх других элементов сцены.
+     *
+     * Решение: берём Math.abs() и масштабируем через % — точка всегда внутри.
+     * Добавляем padding, чтобы круг не прилипал к краю.
+     */
+    private static double toCanvasCoord(double modelValue, double canvasSize) {
+        double padding = 20;
+        double range = canvasSize - padding * 2;
+        return (Math.abs(modelValue) % range) + padding;
+    }
+
     // Перерисовывает канвас.
     public static void redrawCanvas(
         Canvas canvas,
@@ -70,8 +86,8 @@ public class CanvasUtility {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
         for (OrganizationWithId org : orgs) {
-            double x = org.getData().getCoordinates().getX();
-            double y = org.getData().getCoordinates().getY();
+            double x = toCanvasCoord(org.getData().getCoordinates().getX(), canvas.getWidth());
+            double y = toCanvasCoord(org.getData().getCoordinates().getY(), canvas.getHeight());
             double size = org.getData().getAnnualTurnover() != null
                 ? Math.min(org.getData().getAnnualTurnover() / 1000, 50) + 10
                 : 20;
@@ -80,19 +96,19 @@ public class CanvasUtility {
             gc.setFill(color);
 
             // Рисуем круг
-            gc.fillOval(x % canvas.getWidth(), y % canvas.getHeight(), size, size);
+            gc.fillOval(x, y, size, size);
 
             // Подпись
             gc.setFill(Color.BLACK);
-            gc.fillText(org.getData().getName(), x % canvas.getWidth(), y % canvas.getHeight() - 5);
+            gc.fillText(org.getData().getName(), x, y - 5);
         }
     }
-    
+
     // Анимирует объект при его появлении.
     public static void animateOrg(Canvas canvas, OrganizationWithId org) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        double x = org.getData().getCoordinates().getX() % canvas.getWidth();
-        double y = org.getData().getCoordinates().getY() % canvas.getHeight();
+        double x = toCanvasCoord(org.getData().getCoordinates().getX(), canvas.getWidth());
+        double y = toCanvasCoord(org.getData().getCoordinates().getY(), canvas.getHeight());
         Color color = getColorForUser(org.getOwner());
 
         // Анимация - круг увеличивается от 0 до нужного размера.

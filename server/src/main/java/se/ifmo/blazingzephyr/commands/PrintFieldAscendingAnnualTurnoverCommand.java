@@ -27,14 +27,13 @@ public class PrintFieldAscendingAnnualTurnoverCommand implements Command<None> {
      */
     @Override
     public Response execute(ServerContext ctx, None args, String login) {
-        return Response.ok(String.format(
-            "| %-40s |\n|------------------------------------------|\n%s",
-            "Годовая выручка в порядке возрастания.",
+        return Response.ok(
+            "priunt_field_ascending_annual_turnover.success",
             ctx.collection().stream()
                 .map(Organization::getAnnualTurnover)
                 .sorted(Double::compareTo)
                 .map(t -> String.format("| %-40.2f | ", t))
                 .collect(Collectors.joining("\n"))
-        ));
+        );
     }
 }

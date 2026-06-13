@@ -35,12 +35,17 @@ public class FilterGreaterThanTypeCommand implements Command<WithOrganizationTyp
             .collect(Collectors.joining("\n"));
 
         if (result.isEmpty()) {
-            return Response.ok("Элементов с типом больше " + args.organizationType() + " не найдено.");
+            return Response.ok(
+                "filter_greater_than_type.not_found",
+                args.organizationType()
+            );
         }
 
-        return Response.ok(String.format("Элементы с типом, больше чем %s:%n%s%n%s",
+        return Response.ok(
+            "filter_greater_than_type.success",
             args.organizationType(),
             TableUtility.getHeader(),
-            result));
+            result
+        );
     }
 }

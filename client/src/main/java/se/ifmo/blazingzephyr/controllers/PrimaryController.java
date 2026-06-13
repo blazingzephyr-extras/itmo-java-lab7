@@ -14,6 +14,7 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.ChoiceBox;
@@ -69,9 +70,23 @@ public class PrimaryController {
     /** Полный список, полученный с сервера (без фильтра) */
     private List<OrganizationWithId> allData = new ArrayList<>();
 
+    /**
+     * Единственный ObservableList, который навсегда привязан к tableView.
+     * Мы никогда не делаем setItems() повторно — только меняем содержимое этого списка.
+     * Это ключевое: TableView сбрасывает sortOrder именно при замене самого списка.
+     */
+    private final javafx.collections.ObservableList<OrganizationWithId> tableData =
+        FXCollections.observableArrayList();
+
+    // ---------- Прочие поля ----------
     private CommandUtility       commands;
     private ArrayList<Request>   history;
     private final LocaleManager  lm = LocaleManager.getInstance();
+
+    /** Единственный экземпляр таймера поллинга. Не пересоздаётся при loadTable(). */
+    private Timeline pollingTimeline;
+
+    // ---------- Инициализация ----------
 
     public void setLogin(String login) {
         this.userLogin.setText(login);
@@ -91,9 +106,15 @@ public class PrimaryController {
         zipCodeColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getData().getOfficialAddress().getZipCode()));
         ownerColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getOwner()));
 
+        // Привязываем ОДИН РАЗ — больше setItems() нигде не вызываем.
+        // TableView сбрасывает sortOrder при каждой замене списка,
+        // поэтому мы всегда меняем только содержимое tableData через setAll().
+        tableView.setItems(tableData);
+
         this.commands = new CommandUtility();
         this.history  = new ArrayList<>();
 
+        // ---- Выбор столбца фильтра ----
         filterColumnBox.getItems().addAll(FilterColumn.values());
         filterColumnBox.setValue(FilterColumn.NAME);
         filterColumnBox.setConverter(new StringConverter<>() {
@@ -116,6 +137,7 @@ public class PrimaryController {
             @Override public FilterColumn fromString(String s) { return null; }
         });
 
+        // При изменении текста фильтра — применить
         filterField.textProperty().addListener((obs, o, n) -> applyFilterAndSort());
         filterColumnBox.valueProperty().addListener((obs, o, n) -> {
             // Обновляем подсказку
@@ -123,14 +145,20 @@ public class PrimaryController {
             applyFilterAndSort();
         });
 
-        tableView.setSortPolicy(tv -> {
+        // ---- Сортировка ----
+        // Слушаем изменения sortOrder напрямую, а не через setSortPolicy.
+        // setSortPolicy вызывается и при setItems() — это и было причиной сброса:
+        // поллинг ставил новые данные → срабатывал setSortPolicy → applyFilterAndSort()
+        // читал ещё не восстановленный sortOrder → сортировка терялась.
+        tableView.getSortOrder().addListener((javafx.collections.ListChangeListener<TableColumn<OrganizationWithId, ?>>) c -> {
             applyFilterAndSort();
-            return true;
         });
 
+        // ---- Локализация ----
         lm.bundleProperty().addListener((obs, o, n) -> applyLocale());
         applyLocale();
 
+        // ---- Canvas ----
         canvas.setOnMouseClicked(event -> CanvasUtility.onMouseClicked(
             event, canvas, tableView,
             org -> App.showPopup(String.format(
@@ -143,11 +171,12 @@ public class PrimaryController {
                     if (response != null) out.appendText(new String(response.getMessage()) + "\n\n");
                     loadTable();
                 } catch (Exception e) {
-                    out.appendText(lm.get("error.prefix") + e.getLocalizedMessage() + "\n\n");
+                    out.appendText(lm.get("error.prefix") + e.getMessage() + "\n\n");
                 }
             }
         ));
 
+        // ---- Строки таблицы ----
         tableView.setRowFactory(tv -> TableRowFactory.factory(
             tv,
             row -> {
@@ -155,26 +184,28 @@ public class PrimaryController {
                 try {
                     Request request = new Request(CommandType.REMOVE_BY_ID, new CommandPayload.WithId(org.getId()));
                     Response response = App.sendRequest(request);
-                    out.appendText(new String(response.getMessage()) + "\n\n");
+                    String key = response.getMessage();
+                    out.appendText(String.format(lm.get(key), response.getArgs().toArray()) + "\n\n");
                     loadTable();
                 } catch (Exception ex) {
-                    out.appendText(lm.get("error.prefix") + ex.getLocalizedMessage() + "\n\n");
+                    out.appendText(lm.get("error.prefix") + ex.getMessage() + "\n\n");
                 }
             },
             row -> {
                 OrganizationWithId org = row.getItem();
                 try {
                     Response response = EditDialogUtility.openEditDialog(org);
-                    if (response != null) out.appendText(new String(response.getMessage()) + "\n\n");
+                    String key = response.getMessage();
+                    if (response != null) out.appendText(String.format(lm.get(key), response.getArgs().toArray()) + "\n\n");
                     loadTable();
                 } catch (Exception e) {
-                    out.appendText(lm.get("error.prefix") + e.getLocalizedMessage() + "\n\n");
+                    out.appendText(lm.get("error.prefix") + e.getMessage() + "\n\n");
                 }
             }
         ));
     }
 
-    // Переключает UI на текущую локаль.
+    /** Переключает UI на текущую локаль. */
     private void applyLocale() {
         userLoginLabel.setText(lm.get("primary.user") + ":");
         filterLabel.setText(lm.get("primary.filter") + ":");
@@ -203,17 +234,35 @@ public class PrimaryController {
         filterField.setPromptText(lm.get("primary.filterPlaceholder"));
     }
 
+    // ---------- Загрузка данных ----------
+
+    /**
+     * Загружает таблицу с сервера в фоновом потоке (JavaFX Task),
+     * не блокируя UI-поток на время сетевого запроса.
+     */
     public void loadTable() {
-        try {
-            Request request = new Request(CommandType.SHOW);
-            Response response = App.sendRequest(request);
-            allData = new ArrayList<>(response.getData());
+        Task<List<OrganizationWithId>> task = new Task<>() {
+            @Override
+            protected List<OrganizationWithId> call() throws Exception {
+                Request request = new Request(CommandType.SHOW);
+                return App.sendRequest(request).getData();
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            allData = new ArrayList<>(task.getValue());
             applyFilterAndSort();
-            startPolling();
-        } catch (Exception e) {
-            App.showPopup(lm.get("error.loadData") + e.getLocalizedMessage());
-        }
+            startPolling(); // безопасно: повторный вызов — no-op
+        });
+
+        task.setOnFailed(e -> App.showPopup(
+            lm.get("error.loadData") + task.getException().getLocalizedMessage()
+        ));
+
+        new Thread(task, "load-table-thread").start();
     }
+
+    // ---------- Фильтрация и сортировка через Streams API ----------
 
     /**
      * Фильтрует {@code allData} по введённому тексту и выбранному столбцу,
@@ -228,18 +277,18 @@ public class PrimaryController {
 
         FilterColumn col = filterColumnBox.getValue();
 
-        // 1. Фильтрация (Streams)
         List<OrganizationWithId> filtered = allData.stream()
             .filter(org -> {
                 if (filterText.isEmpty()) return true;
                 String value = extractColumnValue(org, col);
                 return value != null && value.toLowerCase(Locale.ROOT).contains(filterText);
             })
-            // 2. Сортировка (Streams) — по первому активному столбцу из sortOrder
             .sorted(buildComparator())
             .collect(Collectors.toList());
 
-        tableView.setItems(FXCollections.observableArrayList(filtered));
+        // setAll() меняет содержимое существующего списка, не заменяя сам список —
+        // поэтому TableView не трогает sortOrder.
+        tableData.setAll(filtered);
         CanvasUtility.redrawCanvas(canvas, filtered);
     }
 
@@ -329,9 +378,13 @@ public class PrimaryController {
         return Comparator.comparingLong(OrganizationWithId::getId);
     }
 
+    // ---------- Команды ----------
+
     @FXML public void add()   { sendReq("add"); }
     @FXML public void info()  { sendReq("info"); }
     @FXML public void clear() { sendReq("clear"); }
+    @FXML public void help() { sendReq("help"); }
+    @FXML public void history() { sendReq("history"); }
 
     @FXML
     public void send() {
@@ -344,35 +397,46 @@ public class PrimaryController {
     public void sendReq(String input) {
         ValidationResult validation = commands.validate(input);
         if (validation.isError()) {
-            out.appendText(lm.get("error.prefix") + validation.error().get().getMessage() + "\n\n");
+            String message = lm.get(String.valueOf(validation.error().get()).toLowerCase());
+            out.appendText(lm.get("error.prefix") + message + "\n\n");
             return;
         }
 
         Request request = validation.request().get();
 
         if (request.getCommandType() == CommandType.HISTORY) {
-            out.appendText(ClientCommands.printHistory(history) + "\n\n");
+            out.appendText(ClientCommands.printHistory(history, lm) + "\n\n");
             return;
         }
         if (request.getCommandType() == CommandType.HELP) {
-            out.appendText(ClientCommands.printHelp(request.getPayload(), commands.getCommands()) + "\n\n");
+            out.appendText(ClientCommands.printHelp(request.getPayload(), commands.getCommands(), lm) + "\n\n");
             return;
         }
         if (request.getCommandType() == CommandType.EXIT) return;
 
         if (request.getCommandType() == CommandType.EXECUTE_SCRIPT) {
-            String result = ClientCommands.executeScript(request, commands);
+            String result = ClientCommands.executeScript(request, commands, lm);
             out.appendText(result + "\n\n");
             history.add(request);
             loadTable();
             return;
         }
 
-        try {
-            Response response = App.sendRequest(request);
+        // Выполняем сетевой запрос в фоновом потоке — UI не блокируется.
+        Task<Response> task = new Task<>() {
+            @Override
+            protected Response call() throws Exception {
+                return App.sendRequest(request);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            Response response = task.getValue();
             history.add(request);
-            out.appendText(new String(response.getMessage()) + "\n\n");
-            loadTable();
+
+            String key = response.getMessage();
+            out.appendText(String.format(lm.get(key), response.getArgs().toArray()) + "\n\n");
+            loadTable(); // тоже асинхронный — не блокирует
 
             if (request.getCommandType() == CommandType.ADD
                     || request.getCommandType() == CommandType.ADD_IF_MIN) {
@@ -381,13 +445,29 @@ public class PrimaryController {
                     CanvasUtility.animateOrg(canvas, items.get(items.size() - 1));
                 }
             }
-        } catch (Exception e) {
-            out.appendText(lm.get("error.prefix") + e.getLocalizedMessage() + "\n\n");
-        }
+        });
+
+        task.setOnFailed(e ->
+            out.appendText(lm.get("error.prefix") + task.getException().getLocalizedMessage() + "\n\n")
+        );
+
+        new Thread(task, "send-request-thread").start();
     }
 
+    // ---------- Поллинг ----------
+
+    /**
+     * Запускает фоновый опрос сервера раз в 3 секунды.
+     * Повторные вызовы (после каждого loadTable) игнорируются —
+     * Timeline создаётся ровно один раз за время жизни контроллера.
+     */
     private void startPolling() {
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> {
+        if (pollingTimeline != null) return; // уже запущен — не создавать ещё один
+
+        pollingTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> {
+            // Сетевой запрос выполняется в фоновом потоке (см. sendReq),
+            // но поллинг намеренно лёгкий и редкий, поэтому оставляем
+            // обработку ответа через Platform.runLater.
             try {
                 Request request = new Request(CommandType.SHOW);
                 Response response = App.sendRequest(request);
@@ -400,7 +480,7 @@ public class PrimaryController {
                 // тихо игнорируем ошибки поллинга
             }
         }));
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();
+        pollingTimeline.setCycleCount(Timeline.INDEFINITE);
+        pollingTimeline.play();
     }
 }

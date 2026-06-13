@@ -38,17 +38,17 @@ public class UpdateCommand implements Command<WithIdAndOrganization> {
         try {
             org = ctx.database().selectById(id);
         } catch (SQLException ex) {
-            return Response.error("Произошла ошибка во время получения объекта из базы данных: " + ex.getMessage());
+            return Response.error("update.error_get", ex.getMessage());
         }
 
         if (org.isEmpty())
         {
-            return Response.error("Организации с искомым ID не существует.");
+            return Response.error("update.not_found");
         }
 
         if (!org.get().getOwner().equals(login))
         {
-            return Response.error("Невозможно изменить объект, не принадлежащий данному пользователю.");
+            return Response.error("update.not_owned");
         }
 
         try {
@@ -56,8 +56,7 @@ public class UpdateCommand implements Command<WithIdAndOrganization> {
             boolean success = ctx.database().update(id, data);
             if (!success)
             {
-                return Response.error("Организация не была обновлена. " +
-                    "Проверьте существование организации с искомым ID.");
+                return Response.error("update.error_unknown");
             }
             else
             {
@@ -70,10 +69,10 @@ public class UpdateCommand implements Command<WithIdAndOrganization> {
                     .setOrganizationType(data.getOrganizationType())
                     .setOfficialAddress(data.getOfficialAddress());
 
-                return Response.ok(String.format("Организация с ID %d успешно изменена.%n", id));
+                return Response.ok("update.success", id);
             }
         } catch (SQLException ex) {
-            return Response.error("Произошла ошибка во время обновления объекта в базе данных: " + ex.getMessage());
+            return Response.error("update.error", ex.getMessage());
         }
     }
 }

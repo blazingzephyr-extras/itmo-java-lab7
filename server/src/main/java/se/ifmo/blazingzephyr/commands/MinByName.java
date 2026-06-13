@@ -32,9 +32,10 @@ public class MinByName implements Command<None> {
             .min(Organization::compareTo)
             .orElse(null);
 
-        return Response.ok(String.format(
-            "Элемент с минимальным значением name.\n%s\n%s",
+        return Response.ok(
+            "min_by_name.success",
             TableUtility.getHeader(),
-            TableUtility.getEntry(org)));
+            TableUtility.getEntry(org)
+        );
     }
 }

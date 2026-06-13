@@ -13,12 +13,11 @@ import se.ifmo.blazingzephyr.model.OrganizationData;
 public enum CommandStub {
 
     HELP(
-        "Выводит справку по доступным командам.",
         "[--command: String]",
         new String[]
         {
-            "command: Команда, информацию о которой требуется узнать.",
-            "   Аргумент можно опустить для получения информации о всех командах."
+            "args.command",
+            "args.extra"
         },
         ctx -> {
                 
@@ -32,7 +31,6 @@ public enum CommandStub {
     ),
 
     INFO(
-        "Выводит в стандартный поток вывода информацию о коллекции (тип, дата инициализации, количество элементов и т.д.).",
         "",
         new String[] { },
         ctx -> {
@@ -41,7 +39,6 @@ public enum CommandStub {
     ),
 
     SHOW(
-        "Выводит в стандартный поток вывода все элементы коллекции в строковом представлении.",
         "",
         new String[] { },
         ctx -> {
@@ -50,9 +47,8 @@ public enum CommandStub {
     ),
 
     ADD(
-        "Добавляет новый элемент в коллекцию.",
         "{--element: Organization}",
-        new String[] { "element: Элемент, который требуется добавить в коллекцию." },
+        new String[] { "element" },
         ctx -> {
             // Заместо чтения из консоли вызывается новый диалог для создания организаций.
             Optional<OrganizationData> data = App.showOrganizationDialog();
@@ -66,7 +62,6 @@ public enum CommandStub {
     ),
 
     CLEAR(
-        "Очищает коллекцию.",
         "",
         new String[] { },
         ctx -> {
@@ -75,7 +70,6 @@ public enum CommandStub {
     ),
 
     REORDER(
-        "Отсортировывает коллекцию в порядке, обратном нынешнему.",
         "",
         new String[] { },
         ctx -> {
@@ -84,7 +78,6 @@ public enum CommandStub {
     ),
 
     PRINT_FIELD_ASCENDING_ANNUAL_TURNOVER(
-        "Выводит значения поля annualTurnover всех элементов в порядке возрастания",
         "",
         new String[] { },
         ctx -> {
@@ -93,7 +86,6 @@ public enum CommandStub {
     ),
 
     MIN_BY_NAME(
-        "Выводит любой объект из коллекции, значение поля name которого является минимальным.",
         "",
         new String[] { },
         ctx -> {
@@ -102,9 +94,8 @@ public enum CommandStub {
     ),
 
     REMOVE_BY_ID(
-        "Удаляет элемент из коллекции по его id.",
         "[--id: long]",
-        new String[] { "id: ID элемента, который требуется удалить." },
+        new String[] { "id" },
         ctx -> {
             long id_arg;
             if (ctx.args().length < 1) return ValidationResult.error(ValidationError.ID_NEEDED);
@@ -114,9 +105,8 @@ public enum CommandStub {
     ),
 
     FILTER_GREATER_THAN_TYPE(
-        "Выводит элементы, значение поля type которых больше заданного.",
         "type",
-        new String[] { "type: Значение поля type [" + OrganizationType.getTypes() + "]" },
+        new String[] { "type" },
         ctx -> {
             if (ctx.args().length < 1) return ValidationResult.error(ValidationError.TYPE_NEEDED);
             try {
@@ -128,11 +118,10 @@ public enum CommandStub {
     ),
 
     UPDATE(
-        "Обновляет значение элемента коллекции, id которого равен заданному.",
         "id {--element: Organization}",
         new String[] {
-            "id: ID элемента, который требуется изменить",
-            "element: Новые параметры данного элемента."
+            "id",
+            "element"
         },
         ctx -> {
             long id_arg;
@@ -151,9 +140,8 @@ public enum CommandStub {
     ),
 
     ADD_IF_MIN(
-        "Добавляет новый элемент в коллекцию, если его значение меньше, чем у наименьшего элемента этой коллекции.",
         "{--element: Organization}",
-        new String[] { "element: Элемент, который требуется добавить в коллекцию." },
+        new String[] { "element" },
         ctx -> {
             // Заместо чтения из консоли вызывается новый диалог для создания организаций.
             Optional<OrganizationData> data = App.showOrganizationDialog();
@@ -167,10 +155,8 @@ public enum CommandStub {
     ),
     
     EXECUTE_SCRIPT(
-        "Считывает и исполняет скрипт из указанного файла. " + 
-            "В скрипте содержатся команды в таком же виде, в котором их вводит пользователь в интерактивном режиме.",
         "file_name",
-        new String[] { "file_name: Файл, из которого требуется выполнить команду." },
+        new String[] { "file_name" },
         ctx -> {
             
             if (ctx.args().length < 1) return ValidationResult.error(ValidationError.FILE_PATH_NEEDED);
@@ -180,7 +166,6 @@ public enum CommandStub {
     ),
     
     HISTORY(
-        "Выводит последние 15 команд (без их аргументов).",
         "",
         new String[] { },
         ctx -> {
@@ -189,7 +174,6 @@ public enum CommandStub {
     ),
     
     EXIT(
-        "Завершает программу (без сохранения в файл).",
         "",
         new String[] { },
         ctx -> {
@@ -197,19 +181,16 @@ public enum CommandStub {
         }
     );
 
-    private final String description;
     private final String syntax;
     private final String[] arguments;
     private final Function<ValidationContext, ValidationResult> validation;
     
-    CommandStub(String description, String syntax, String[] arguments, Function<ValidationContext, ValidationResult> validation) {
-        this.description = description;
+    CommandStub(String syntax, String[] arguments, Function<ValidationContext, ValidationResult> validation) {
         this.syntax = syntax;
         this.arguments = arguments;
         this.validation = validation;
     }
 
-    public String getDescription() { return this.description; }
     public String getSyntax() { return this.syntax; }
     public String[] getArguments() { return this.arguments; }
     public Function<ValidationContext, ValidationResult> getValidator() { return this.validation; }

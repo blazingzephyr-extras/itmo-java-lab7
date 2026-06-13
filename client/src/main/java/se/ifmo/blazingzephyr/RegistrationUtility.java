@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import se.ifmo.blazingzephyr.i18n.LocaleManager;
 
 import se.ifmo.blazingzephyr.networking.CommandType;
 import se.ifmo.blazingzephyr.networking.Request;
@@ -21,7 +22,7 @@ public class RegistrationUtility {
 
         Request request = new Request(type);
         request.packAuthorization(login, password);
-        
+
         // Сериализуем запрос.
         byte[] buffer;
         try {

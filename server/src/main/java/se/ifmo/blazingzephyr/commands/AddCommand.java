@@ -34,12 +34,16 @@ public class AddCommand implements Command<WithOrganization> {
             Organization newOrg = ctx.database().insert(data, login);
             ctx.collection().add(newOrg);
 
-            return Response.ok(String.format(
-                "Организация '%s' успешно добавлена с ID %d.",
+            return Response.ok(
+                "add.success",
                 data.getName(),
-                newOrg.getId()));
+                newOrg.getId()
+            );
         } catch (SQLException e) {
-            return Response.error("Произошла ошибка во время добавления объекта в базу данных: " + e.getLocalizedMessage());
+            return Response.error(
+                "add.error",
+                e.getMessage()
+            );
         }
     }
 }

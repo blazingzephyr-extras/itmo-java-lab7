@@ -30,12 +30,12 @@ public class ClearCommand implements Command<None> {
         try {
             ctx.database().deleteAll(login);
             ctx.collection().removeIf(o -> o.getOwner().equals(login));
-            return Response.ok("""
-                Элементы коллекции, которыми владеет нынешний пользователь были зачищены.
-                Проверьте, используя show. Для дополнительных опций используйте help.
-            """);
+            return Response.ok("clear.success");
         } catch (SQLException e) {
-            return Response.error("Произошла ошибка во время очистки базы данных: " + e.getLocalizedMessage());
+            return Response.error(
+                "clear.error",
+                e.getMessage()
+            );
         }
     }
 }

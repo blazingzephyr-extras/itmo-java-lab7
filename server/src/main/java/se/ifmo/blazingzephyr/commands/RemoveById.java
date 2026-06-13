@@ -35,39 +35,45 @@ public class RemoveById implements Command<WithId> {
         try {
             org = ctx.database().selectById(id);
         } catch (SQLException ex) {
-            return Response.error("Произошла ошибка во время получения объекта из базы данных: " + ex.getMessage());
+            return Response.error(
+                "remove_by_id.error_get",
+                ex.getMessage()
+            );
         }
 
         if (org.isEmpty())
         {
-            return Response.ok("Организации с искомым ID не существует.");
+            return Response.ok("remove_by_id.not_found");
         }
 
         if (!org.get().getOwner().equals(login))
         {
-            return Response.error("Невозможно удалить объект, не принадлежащий данному пользователю.");
+            return Response.error("remove_by_id.not_owned");
         }
 
         try {
             boolean success = ctx.database().deleteById(id);
             if (!success)
             {
-                return Response.ok("Организация не была удалена.");
+                return Response.ok("remove_by_id.not_deleted");
             }
             else
             {
                 boolean removeFromDb = ctx.collection().removeIf(o -> o.getId() == id);
                 if (!removeFromDb)
                 {
-                    return Response.ok(String.format("Организация с ID %d успешно удалена из БД, но не из програмы.", id));
+                    return Response.ok("remove_by_id.partial_suc", id);
                 }
                 else
                 {
-                    return Response.ok(String.format("Организация с ID %d успешно удалена.", id));
+                    return Response.ok("remove_by_id.success", id);
                 }
             }
         } catch (SQLException ex) {
-            return Response.error("Произошла ошибка во время удаления объекта в базе данных: " + ex.getMessage());
+            return Response.error(
+                "remove_by_id.error_del",
+                ex.getMessage()
+            );
         }
     }
 }

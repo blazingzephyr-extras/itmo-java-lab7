@@ -70,15 +70,12 @@ public class App extends Application {
     }
 
     public static DatagramSocket getSocket() {
-        // Ленивая инициализация сокета.
         if (socket == null) {
             try {
                 socket = new DatagramSocket();
-            }
-
-            // Обработки ошибки сокета.
-            catch (SocketException e) {
-                System.out.println("Ошибка сокета: " + e.getLocalizedMessage());
+                socket.setSoTimeout(5000); // таймаут 5 секунд
+            } catch (SocketException e) {
+                System.out.println("Socket error: " + e.getLocalizedMessage());
             }
         }
         return socket;
@@ -118,7 +115,7 @@ public class App extends Application {
 
         // Добавляем в запрос логин и пароль.
         request.packAuthorization(login, password);
-        
+
         // Сериализуем команды.
         byte[] buffer = Serializer.serialize(request);
 
@@ -132,7 +129,11 @@ public class App extends Application {
         buffer = new byte[65507];
         
         DatagramPacket responseDatagram = new DatagramPacket(buffer, buffer.length);
-        App.getSocket().receive(responseDatagram);
+        try {
+            getSocket().receive(responseDatagram);
+        } catch (java.net.SocketTimeoutException e) {
+            throw new IOException("Server did not respond within 5 seconds. Check the connection.", e);
+        }
         
         Response response = Serializer.deserialize(responseDatagram.getData());
         return response;
@@ -149,7 +150,7 @@ public class App extends Application {
             OrganizationDialogController controller = loader.getController();
             return Optional.ofNullable(controller.getResult());
         } catch (Exception e) {
-            App.showPopup("Не удалось открыть окно.");
+            App.showPopup("Could not open the window.");
             return Optional.empty();
         }
     }

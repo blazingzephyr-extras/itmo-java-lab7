@@ -4,42 +4,33 @@ public enum ValidationError {
     /**
      * Данной команды не существует.
      */
-    NO_COMMAND("Данной команды не существует."),
+    NO_COMMAND,
     /**
      * Недостаточно аргументов. Требуется указать ID.
      */
-    ID_NEEDED("Недостаточно аргументов. Требуется указать ID."),
+    ID_NEEDED,
     /**
      * ID элемента не может быть отрицательным.
      */
-    ID_CANT_BE_NEGATIVE("ID элемента не может быть отрицательным."),
+    ID_CANT_BE_NEGATIVE,
     /**
      * Не указан тип для сравнения.
      */
-    TYPE_NEEDED("Не указан тип для сравнения."),
+    TYPE_NEEDED,
     /**
      * Такого типа организации не существует.
      */
-    NO_SUCH_TYPE("Такого типа организации не существует."),
+    NO_SUCH_TYPE,
     /**
      * Не указан путь к файлу скрипта.
      */
-    FILE_PATH_NEEDED("Не указан путь к файлу скрипта."),
+    FILE_PATH_NEEDED,
     /**
      * Искомый файл скрипта не существует.
      */
-    FILE_DOES_NOT_EXIST("Искомый файл скрипта не существует."),
+    FILE_DOES_NOT_EXIST,
     /**
      * Необходимые для создания объекта данные не прошли валидацию
      */
-    NO_ITEM("Необходимые для создания объекта данные не прошли валидацию.");
-
-    private final String message;
-    ValidationError(String message) {
-        this.message = message;
-    }
-
-    public String getMessage() {
-        return this.message;
-    }
+    NO_ITEM
 }

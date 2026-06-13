@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Scanner;
+import se.ifmo.blazingzephyr.i18n.LocaleManager;
 
 import se.ifmo.blazingzephyr.networking.CommandPayload;
 import se.ifmo.blazingzephyr.networking.CommandType;
@@ -16,10 +17,10 @@ public class ScriptManager {
 
     private static final Set<String> scriptStack = new HashSet<>();
 
-    public static String execute(String filePath, CommandUtility commands) {
+    public static String execute(String filePath, CommandUtility commands, LocaleManager lm) {
 
         if (scriptStack.contains(filePath)) {
-            return "Ошибка: рекурсия! Файл " + filePath + " уже выполняется выше по стеку.";
+            return String.format(lm.get("script_manager.recursion"), filePath);
         }
 
         StringBuilder scriptOutput = new StringBuilder("---" + filePath + "---\n");
@@ -35,7 +36,8 @@ public class ScriptManager {
                 ValidationResult validation = commands.validate(line);
 
                 if (validation.isError()) {
-                    scriptOutput.append(validation.error().get().getMessage()).append('\n');
+                    String message = lm.get(String.valueOf(validation.error().get()).toLowerCase());
+                    scriptOutput.append(message).append('\n');
                     continue;
                 }
 
@@ -46,30 +48,35 @@ public class ScriptManager {
                     || request.getCommandType() == CommandType.EXIT
                     || request.getCommandType() == CommandType.HELP) {
                     scriptOutput.append("[").append(request.getCommandType().name().toLowerCase())
-                                .append(" недоступна в скрипте]\n");
+                                .append(lm.get("script_manager.unavailable"));
                     continue;
                 }
 
                 if (request.getCommandType() == CommandType.EXECUTE_SCRIPT) {
                     CommandPayload.WithScriptName payload = (CommandPayload.WithScriptName) request.getPayload();
-                    scriptOutput.append(execute(payload.scriptName(), commands)).append('\n');
+                    scriptOutput.append(execute(payload.scriptName(), commands, lm)).append('\n');
                     continue;
                 }
 
                 try {
                     Response response = App.sendRequest(request);
-                    scriptOutput.append(response.getMessage()).append('\n');
+                    String key = response.getMessage();
+                    scriptOutput.append(String.format(lm.get(key), response.getArgs().toArray())).append('\n');
                 } catch (IOException | ClassNotFoundException e) {
-                    scriptOutput.append("Ошибка сети: ").append(e.getMessage()).append('\n');
+                    scriptOutput.append(String.format(lm.get("script_manager.network_error"), e.getMessage()));
                 }
             }
 
         } catch (IOException e) {
             scriptStack.remove(filePath);
-            return "Ошибка чтения скрипта '" + filePath + "': " + e.getMessage();
+            return String.format(
+                lm.get("script_manager.error_reading_script"),
+                filePath,
+                e.getMessage()
+            );
         }
 
         scriptStack.remove(filePath);
-        return scriptOutput.append("---").append(filePath).append(" завершён---").toString();
+        return scriptOutput.append("---").append(filePath).append("---").toString();
     }
 }

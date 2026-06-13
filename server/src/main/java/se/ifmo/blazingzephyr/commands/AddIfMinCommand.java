@@ -37,7 +37,7 @@ public class AddIfMinCommand implements Command<CommandPayload.WithOrganization>
             min = ctx.database().getMinByName();
         }
         catch (SQLException ex) {
-            return Response.error("Произошла ошибка во время получения минимального элемента из базы данных");
+            return Response.error("add_if_min.get_error");
         }
 
         OrganizationData data = arg.organization();
@@ -46,16 +46,21 @@ public class AddIfMinCommand implements Command<CommandPayload.WithOrganization>
             try {
                 Organization newOrg = ctx.database().insert(data, login);
                 ctx.collection().add(newOrg);
-                return Response.ok(String.format(
-                    "Организация '%s' успешно добавлена с ID %d.",
+
+                return Response.ok(
+                    "add.ok",
                     data.getName(),
-                    newOrg.getId()));
+                    newOrg.getId()
+                );
             } catch (SQLException e) {
-                return Response.error("Произошла ошибка во время добавления объекта в базу данных: " + e.getLocalizedMessage());
+                return Response.error(
+                    "add.error",
+                    e.getMessage()
+                );
             }
         }
         else {
-            return Response.ok("Организация не была добавлена, потому что имеется минимальный элемент.");
+            return Response.ok("add_if_min.not_added");
         }
     }
 }

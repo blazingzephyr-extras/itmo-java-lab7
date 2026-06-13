@@ -32,7 +32,7 @@
             <Canvas fx:id="canvas" width="350" height="350"/>
          </children>
       </VBox>
-      <TableView fx:id="tableView" prefWidth="800">
+      <TableView fx:id="tableView" prefWidth="825">
          <columns>
                <TableColumn fx:id="idColumn" text="ID"/>
                <TableColumn fx:id="nameColumn" text="Название"/>
@@ -49,9 +49,11 @@
       <VBox prefWidth="400">
          <children>
             <HBox>
-               <Button fx:id="" text="add" onAction="#add" />
+               <Button text="help" onAction="#help" />
+               <Button text="add" onAction="#add" />
                <Button text="info" onAction="#info" />
                <Button text="clear" onAction="#clear" />
+               <Button text="history" onAction="#history" />
             </HBox>
             <TextArea fx:id="out" editable="false" wrapText="true"
                      prefHeight="700" prefWidth="400"
