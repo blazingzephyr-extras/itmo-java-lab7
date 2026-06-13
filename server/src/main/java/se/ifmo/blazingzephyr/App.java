@@ -62,7 +62,6 @@ public class App {
 
         try (Scanner scanner = new Scanner(System.in)) {
             log.info("Консоль администратора готова. Доступные команды: exit");
-            System.out.println("Серверные команды: exit");
 
             while (scanner.hasNextLine()) {
                 String cmd = scanner.nextLine().trim();
@@ -71,13 +70,11 @@ public class App {
                 switch (cmd) {
                     case "exit" -> {
                         log.info("Получена команда 'exit'. Остановка сервера...");
-                        System.out.println("Завершение сервера...");
                         server.stop();
                         return;
                     }
                     default -> {
                         log.warn("Неизвестная серверная команда: '{}'", cmd);
-                        System.out.println("Неизвестная команда. Доступны следующие команды: exit");
                     }
                 }
             }

@@ -181,6 +181,10 @@ public class PrimaryController {
             tv,
             row -> {
                 OrganizationWithId org = row.getItem();
+                if (org == null) {
+                    // Нечего удалять
+                    return;
+                }
                 try {
                     Request request = new Request(CommandType.REMOVE_BY_ID, new CommandPayload.WithId(org.getId()));
                     Response response = App.sendRequest(request);

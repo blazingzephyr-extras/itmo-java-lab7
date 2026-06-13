@@ -38,7 +38,7 @@ public class AuthController {
         // Заполняем список языков
         languageChoiceBox.getItems().addAll(LocaleManager.SUPPORTED);
 
-        // Показываем человекочитаемое название локали
+        // Показываем название локали
         languageChoiceBox.setConverter(new StringConverter<>() {
             @Override
             public String toString(Locale locale) {
@@ -88,7 +88,7 @@ public class AuthController {
         boolean register = registerNewCheckBox.isSelected();
         CommandType type = register ? CommandType.REGISTER : CommandType.AUTHORIZE;
 
-        if (RegistrationUtility.register(type, App.getSocket(), InetAddress.getLocalHost(), App.getPort(), login, password)) {
+        if (RegistrationUtility.register(type, App.getSocket(), InetAddress.getLocalHost(), App.getPort(), login, password, lm)) {
             App.authorize(login, password);
         } else {
             String key = register ? "auth.error.register" : "auth.error.login";

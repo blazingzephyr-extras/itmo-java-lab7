@@ -53,14 +53,14 @@ public class CommandExecutionUtility {
                 boolean ok = ctx.database().registerUser(login, request.getPassword());
                 if (ok) {
                     log.info("Регистрация пользователя '{}' выполнена успешно.", login);
-                    return Response.ok("Регистрация успешна.");
+                    return Response.ok("register.success");
                 } else {
                     log.warn("Регистрация отклонена: логин '{}' уже занят.", login);
-                    return Response.error("Пользователь с таким логином уже существует.");
+                    return Response.error("register.login_exists");
                 }
             } catch (SQLException e) {
                 log.error("Ошибка БД при регистрации пользователя '{}': {}", login, e.getMessage(), e);
-                return Response.error("Ошибка БД: " + e.getMessage());
+                return Response.error("register.bd_error");
             }
         }
 
@@ -69,20 +69,20 @@ public class CommandExecutionUtility {
         try {
             if (!ctx.database().authenticate(login, request.getPassword())) {
                 log.warn("Отказ в аутентификации: неверные учётные данные для логина '{}'.", login);
-                return Response.error("Неверный логин или пароль.");
+                return Response.error("register.incorrect_login");
             }
         } catch (SQLException e) {
             log.error("Ошибка БД при аутентификации пользователя '{}': {}", login, e.getMessage(), e);
-            return Response.error("Ошибка БД при авторизации: " + e.getMessage());
+            return Response.error("register.bd_error");
         }
 
         // Диспетчеризация
         if (type == CommandType.AUTHORIZE) {
             log.info("Пользователь '{}' успешно авторизован.", login);
-            return Response.ok("Успешно авторизовано.");
+            return Response.ok("register.auth_success");
         } else if (!this.commands.containsKey(type)) {
             log.warn("Получена неизвестная команда '{}' от пользователя '{}'.", type, login);
-            return Response.error("Такой команды не существует");
+            return Response.error("no_such_command");
         } else {
             log.info("Выполнение команды {} для пользователя '{}'.", type, login);
             Response response = commands.get(type).execute(ctx, request.getPayload(), login);

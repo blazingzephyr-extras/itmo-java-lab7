@@ -18,7 +18,7 @@ import se.ifmo.blazingzephyr.utility.Serializer;
  */
 public class RegistrationUtility {
     
-    public static boolean register(CommandType type, DatagramSocket socket, InetAddress address, int port, String login, String password) {
+    public static boolean register(CommandType type, DatagramSocket socket, InetAddress address, int port, String login, String password, LocaleManager lm) {
 
         Request request = new Request(type);
         request.packAuthorization(login, password);
@@ -53,7 +53,8 @@ public class RegistrationUtility {
     
         try {
             Response response = Serializer.deserialize(responseDatagram.getData());
-            System.out.println(response.getMessage());
+            String key = response.getMessage();
+            System.out.println(lm.get(key));
             return response.isSuccess();
         } catch (Exception e) {
             System.out.println("Ошибка декодирования пакета: " + e.getLocalizedMessage());
