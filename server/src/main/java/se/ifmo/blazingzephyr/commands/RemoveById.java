@@ -46,7 +46,7 @@ public class RemoveById implements Command<WithId> {
             return Response.ok("remove_by_id.not_found");
         }
 
-        if (!org.get().getOwner().equals(login))
+        if (!org.get().getOwner().equals(login) && !org.get().getOwner().equals("root"))
         {
             return Response.error("remove_by_id.not_owned");
         }

@@ -63,6 +63,23 @@ public class CommandExecutionUtility {
                 return Response.error("register.bd_error");
             }
         }
+        // Регистрация нового root-пароля.
+        else if (type == CommandType.UPDATE_ROOT_PASSWORD) {
+            log.info("Запрос на сохранение нового root-пароля: '{}'.", login);
+            try {
+                boolean ok = ctx.database().setRootPassword(request.getPassword());
+                if (ok) {
+                    log.info("Сохранение нового пароля '{}' выполнено успешно.", login);
+                    return Response.ok("change.password.correct");
+                } else {
+                    log.warn("Не удалось сохранить новый пароль.", login);
+                    return Response.error("change.password.server_error");
+                }
+            } catch (SQLException e) {
+                log.error("Ошибка БД при сохранении нового пароля root-пользователя '{}': {}", login, e.getMessage(), e);
+                return Response.error("register.bd_error");
+            }
+        }
 
         // Авторизация пользователя.
         log.debug("Аутентификация пользователя '{}' для команды {}.", login, type);
@@ -79,8 +96,13 @@ public class CommandExecutionUtility {
         // Диспетчеризация
         if (type == CommandType.AUTHORIZE) {
             log.info("Пользователь '{}' успешно авторизован.", login);
+            if (login.equals("root") && request.getPassword().equals("root")) {
+                log.warn("Необходимо изменить пароль root-пользователя!");
+                return Response.ok("register.auth_root_initial");
+            }
             return Response.ok("register.auth_success");
-        } else if (!this.commands.containsKey(type)) {
+        }
+        else if (!this.commands.containsKey(type)) {
             log.warn("Получена неизвестная команда '{}' от пользователя '{}'.", type, login);
             return Response.error("no_such_command");
         } else {

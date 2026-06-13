@@ -11,6 +11,9 @@ import se.ifmo.blazingzephyr.networking.Request;
 import se.ifmo.blazingzephyr.networking.Response;
 import se.ifmo.blazingzephyr.utility.Serializer;
 
+// Необходимо для возврата результата.
+import javafx.util.Pair;
+
 /**
  * Утилита для обработки запросов на регистрацию.
  * @author blazingzephyr
@@ -18,7 +21,7 @@ import se.ifmo.blazingzephyr.utility.Serializer;
  */
 public class RegistrationUtility {
     
-    public static boolean register(CommandType type, DatagramSocket socket, InetAddress address, int port, String login, String password, LocaleManager lm) {
+    public static Pair<Boolean, String> register(CommandType type, DatagramSocket socket, InetAddress address, int port, String login, String password, LocaleManager lm) {
 
         Request request = new Request(type);
         request.packAuthorization(login, password);
@@ -29,7 +32,7 @@ public class RegistrationUtility {
             buffer = Serializer.serialize(request);
         } catch (IOException e) {
             System.out.println("Ошибка сериализации запроса: " + e.getLocalizedMessage());
-            return false;
+            return new Pair<>(false, null);
         }
         
         // Отправляем запрос на регистрацию серверу.
@@ -38,7 +41,7 @@ public class RegistrationUtility {
             socket.send(requestDatagram);
         } catch (IOException e) {
             System.out.println("Ошибка отправки пакета: " + e.getLocalizedMessage());
-            return false;
+            return new Pair<>(false, null);
         }
     
         // Получаем ответ сервера и выводим его.
@@ -48,17 +51,16 @@ public class RegistrationUtility {
             socket.receive(responseDatagram);
         } catch (IOException e) {
             System.out.println("Ошибка получения пакета: " + e.getLocalizedMessage());
-            return false;
+            return new Pair<>(false, null);
         }
     
         try {
             Response response = Serializer.deserialize(responseDatagram.getData());
             String key = response.getMessage();
-            System.out.println(lm.get(key));
-            return response.isSuccess();
+            return new Pair<>(response.isSuccess(), key);
         } catch (Exception e) {
             System.out.println("Ошибка декодирования пакета: " + e.getLocalizedMessage());
-            return false;
+            return new Pair<>(false, null);
         }
     }
 }

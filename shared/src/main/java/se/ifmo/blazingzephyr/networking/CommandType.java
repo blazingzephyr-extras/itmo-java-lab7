@@ -20,5 +20,6 @@ public enum CommandType {
     FILTER_GREATER_THAN_TYPE,
     MIN_BY_NAME,
     HISTORY,
-    EXIT
+    EXIT,
+    UPDATE_ROOT_PASSWORD
 }

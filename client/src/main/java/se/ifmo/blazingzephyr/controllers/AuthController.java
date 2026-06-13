@@ -4,11 +4,17 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.util.Pair;
 import javafx.util.StringConverter;
 import se.ifmo.blazingzephyr.App;
 import se.ifmo.blazingzephyr.RegistrationUtility;
@@ -88,11 +94,64 @@ public class AuthController {
         boolean register = registerNewCheckBox.isSelected();
         CommandType type = register ? CommandType.REGISTER : CommandType.AUTHORIZE;
 
-        if (RegistrationUtility.register(type, App.getSocket(), InetAddress.getLocalHost(), App.getPort(), login, password, lm)) {
+        Pair<Boolean, String> res = RegistrationUtility.register(
+            type,
+            App.getSocket(),
+            InetAddress.getLocalHost(),
+            App.getPort(),
+            login, password,
+            lm
+        );
+
+        if (res.getValue().equals("register.auth_root_initial")) {
+            String assignedPassword = showChangeRootPasswordDialog(lm);
+            if (assignedPassword == null) return;
+
+            Pair<Boolean, String> passwordChanged = RegistrationUtility.register(
+                CommandType.UPDATE_ROOT_PASSWORD,
+                App.getSocket(),
+                InetAddress.getLocalHost(),
+                App.getPort(),
+                login,
+                assignedPassword,
+                lm
+            );
+
+            App.showPopup(lm.get(passwordChanged.getValue()));
+
+            if (!passwordChanged.getKey()) return;
+            else password = assignedPassword;
+        }
+
+        if (res.getKey()) {
             App.authorize(login, password);
         } else {
-            String key = register ? "auth.error.register" : "auth.error.login";
-            App.showPopup(lm.get(key));
+            String message = register ? "auth.error.register" : "auth.error.login";
+            App.showPopup(lm.get(message));
+        }
+    }
+
+    private String showChangeRootPasswordDialog(LocaleManager lm) {
+        try {
+            FXMLLoader loader = new FXMLLoader(App.class.getResource("root_pwd.fxml"));
+            Parent root = loader.load();
+            
+            RootController controller = loader.getController();            
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+
+            if (controller.isSaved()) {
+                return controller.getPassword();
+            }
+            else {
+                App.showPopup(lm.get("change.password.cancel"));
+                return null;
+            }
+        } catch (IOException e) {
+            App.showPopup(lm.get("change.password.error") + ": " + e.getMessage());
+            return null;
         }
     }
 }

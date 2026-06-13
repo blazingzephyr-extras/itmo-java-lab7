@@ -105,7 +105,7 @@ public class App extends Application {
         popup.setHideOnEscape(true);
 
         // Автоскрытие через 3 секунды
-        new Timeline(new KeyFrame(Duration.seconds(3), e -> {
+        new Timeline(new KeyFrame(Duration.seconds(1.5), e -> {
             popup.hide();
             scene.getWindow().requestFocus();
         })).play();
