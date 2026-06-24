@@ -30,6 +30,12 @@
             <ChoiceBox fx:id="filterColumnBox" />
 
             <Canvas fx:id="canvas" width="350" height="350"/>
+
+            <Button fx:id="group" 
+                  text="group_button"
+                  disable="true"
+                  visible="false"
+                  onAction="#openGroups"/>
          </children>
       </VBox>
       <TableView fx:id="tableView" prefWidth="825">

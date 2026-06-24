@@ -17,6 +17,7 @@ import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -33,6 +34,7 @@ import se.ifmo.blazingzephyr.model.*;
 import se.ifmo.blazingzephyr.networking.*;
 import se.ifmo.blazingzephyr.utility.CanvasUtility;
 import se.ifmo.blazingzephyr.utility.EditDialogUtility;
+import se.ifmo.blazingzephyr.utility.GroupsDialogUtility;
 import se.ifmo.blazingzephyr.utility.TableRowFactory;
 
 public class PrimaryController {
@@ -86,10 +88,17 @@ public class PrimaryController {
     /** Единственный экземпляр таймера поллинга. Не пересоздаётся при loadTable(). */
     private Timeline pollingTimeline;
 
+    @FXML   private Button group;
+
     // ---------- Инициализация ----------
 
     public void setLogin(String login) {
         this.userLogin.setText(login);
+
+        if (login.equals("root")) {
+            this.group.setDisable(false);
+            this.group.setVisible(true);
+        }
     }
 
     @FXML
@@ -232,6 +241,8 @@ public class PrimaryController {
         filterColumnBox.setConverter(filterColumnBox.getConverter()); // trigger repaint
         filterColumnBox.setValue(null);
         filterColumnBox.setValue(cur);
+        
+        group.setText(lm.get("group_button"));
     }
 
     private void updateFilterPlaceholder() {
@@ -486,5 +497,14 @@ public class PrimaryController {
         }));
         pollingTimeline.setCycleCount(Timeline.INDEFINITE);
         pollingTimeline.play();
+    }
+
+    @FXML
+    public void openGroups() {
+        try {
+            GroupsDialogUtility.openGroupsDialog();
+        } catch (Exception e) {
+            App.showPopup(String.format(lm.get("group_button.fail"), e.getMessage()));
+        }
     }
 }

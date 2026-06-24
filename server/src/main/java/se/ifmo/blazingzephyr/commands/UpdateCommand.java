@@ -46,14 +46,9 @@ public class UpdateCommand implements Command<WithIdAndOrganization> {
             return Response.error("update.not_found");
         }
 
-        if (!org.get().getOwner().equals(login))
-        {
-            return Response.error("update.not_owned");
-        }
-
         try {
 
-            boolean success = ctx.database().update(id, data);
+            boolean success = ctx.database().update(id, data, login);
             if (!success)
             {
                 return Response.error("update.error_unknown");

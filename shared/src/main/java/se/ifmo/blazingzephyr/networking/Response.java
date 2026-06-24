@@ -33,6 +33,10 @@ public final class Response implements Serializable {
         return new Response(true, message, data, List.of());
     }
 
+    public static <T extends Serializable> Response okList(String message, List<T> list) {
+        return new Response(true, message, null, List.copyOf(list));
+    }
+
     public static Response error(String message) {
         return new Response(false, message, null, List.of());
     }

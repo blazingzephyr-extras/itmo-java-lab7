@@ -102,6 +102,67 @@ public class CommandExecutionUtility {
             }
             return Response.ok("register.auth_success");
         }
+        // Команды управления группами — только для root.
+        else if (type == CommandType.GET_USERS
+                || type == CommandType.GET_GROUPS
+                || type == CommandType.GET_RELATIONS
+                || type == CommandType.CREATE_GROUP
+                || type == CommandType.ADD_USER_TO_GROUP
+                || type == CommandType.REMOVE_USER_FROM_GROUP
+                || type == CommandType.DELETE_GROUP) {
+
+            if (!"root".equals(login)) {
+                log.warn("Доступ запрещён: команда {} требует root, получена от '{}'.", type, login);
+                return Response.error("groups.access_denied");
+            }
+
+            try {
+                return switch (type) {
+                    case GET_USERS -> {
+                        log.info("root запрашивает список пользователей.");
+                        yield Response.okList("groups.users", ctx.database().selectAllUsers());
+                    }
+                    case GET_GROUPS -> {
+                        log.info("root запрашивает список групп.");
+                        yield Response.okList("groups.groups", ctx.database().selectAllGroups());
+                    }
+                    case GET_RELATIONS -> {
+                        log.info("root запрашивает список членств в группах.");
+                        yield Response.okList("groups.relations", ctx.database().selectAllGroupRelations());
+                    }
+                    case CREATE_GROUP -> {
+                        String groupName = (String) ((se.ifmo.blazingzephyr.networking.CommandPayload.StringArg) request.getPayload()).value();
+                        log.info("root создаёт группу '{}'.", groupName);
+                        var created = ctx.database().createGroup(groupName);
+                        yield created.isPresent()
+                                ? Response.ok("groups.created", created.get())
+                                : Response.error("groups.name_exists");
+                    }
+                    case ADD_USER_TO_GROUP -> {
+                        var p = (se.ifmo.blazingzephyr.networking.CommandPayload.TwoLongs) request.getPayload();
+                        log.info("root добавляет пользователя ID={} в группу ID={}.", p.first(), p.second());
+                        boolean added = ctx.database().addUserToGroup(p.first(), p.second());
+                        yield added ? Response.ok("groups.user_added") : Response.error("groups.already_member");
+                    }
+                    case REMOVE_USER_FROM_GROUP -> {
+                        var p = (se.ifmo.blazingzephyr.networking.CommandPayload.TwoLongs) request.getPayload();
+                        log.info("root удаляет пользователя ID={} из группы ID={}.", p.first(), p.second());
+                        boolean removed = ctx.database().removeUserFromGroup(p.first(), p.second());
+                        yield removed ? Response.ok("groups.user_removed") : Response.error("groups.not_member");
+                    }
+                    case DELETE_GROUP -> {
+                        long groupId = ((se.ifmo.blazingzephyr.networking.CommandPayload.LongArg) request.getPayload()).value();
+                        log.info("root удаляет группу ID={}.", groupId);
+                        boolean deleted = ctx.database().deleteGroup(groupId);
+                        yield deleted ? Response.ok("groups.deleted") : Response.error("groups.not_found");
+                    }
+                    default -> Response.error("no_such_command");
+                };
+            } catch (SQLException e) {
+                log.error("Ошибка БД при выполнении команды {}: {}", type, e.getMessage(), e);
+                return Response.error("register.bd_error");
+            }
+        }
         else if (!this.commands.containsKey(type)) {
             log.warn("Получена неизвестная команда '{}' от пользователя '{}'.", type, login);
             return Response.error("no_such_command");

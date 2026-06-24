@@ -1,10 +1,9 @@
 package se.ifmo.blazingzephyr.networking;
 
-import se.ifmo.blazingzephyr.model.OrganizationData;
-import se.ifmo.blazingzephyr.model.OrganizationType;
-
 import java.io.Serial;
 import java.io.Serializable;
+import se.ifmo.blazingzephyr.model.OrganizationData;
+import se.ifmo.blazingzephyr.model.OrganizationType;
 
 public sealed interface CommandPayload extends Serializable
         permits CommandPayload.None,
@@ -13,7 +12,10 @@ public sealed interface CommandPayload extends Serializable
                 CommandPayload.WithIdAndOrganization,
                 CommandPayload.WithOrganizationType,
                 CommandPayload.WithName,
-                CommandPayload.WithScriptName {
+                CommandPayload.WithScriptName,
+                CommandPayload.StringArg,
+                CommandPayload.LongArg,
+                CommandPayload.TwoLongs {
 
     record None() implements CommandPayload {
         @Serial private static final long serialVersionUID = 1L;
@@ -46,6 +48,21 @@ public sealed interface CommandPayload extends Serializable
 
     /** EXECUTE_SCRIPT */
     record WithScriptName(String scriptName) implements CommandPayload {
+        @Serial private static final long serialVersionUID = 1L;
+    }
+
+    /** CREATE_GROUP — имя новой группы */
+    record StringArg(String value) implements CommandPayload {
+        @Serial private static final long serialVersionUID = 1L;
+    }
+
+    /** DELETE_GROUP — ID группы */
+    record LongArg(long value) implements CommandPayload {
+        @Serial private static final long serialVersionUID = 1L;
+    }
+
+    /** ADD_USER_TO_GROUP, REMOVE_USER_FROM_GROUP — userId + groupId */
+    record TwoLongs(long first, long second) implements CommandPayload {
         @Serial private static final long serialVersionUID = 1L;
     }
 }

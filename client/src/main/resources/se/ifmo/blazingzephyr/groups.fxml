@@ -1,0 +1,44 @@
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+
+<HBox alignment="CENTER"
+   spacing="10.0"
+   xmlns="http://javafx.com/javafx/8.0.171"
+   xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="se.ifmo.blazingzephyr.controllers.GroupsDialogController"
+   prefWidth="1280"
+   prefHeight="720">
+      <TableView fx:id="users" prefWidth="300">
+         <columns>
+               <TableColumn fx:id="users_idColumn" text="ID"/>
+               <TableColumn fx:id="users_loginColumn" text="Логин"/>
+               <TableColumn fx:id="users_passwordColumn" text="Пароль"/>
+         </columns>
+      </TableView>
+      <TableView fx:id="groups" prefWidth="300">
+         <columns>
+               <TableColumn fx:id="groups_idColumn" text="ID"/>
+               <TableColumn fx:id="groups_nameColumn" text="Название"/>
+               <TableColumn fx:id="groups_createdAt" text="Создана"/>
+         </columns>
+      </TableView>
+      <TableView fx:id="relations" prefWidth="300">
+         <columns>
+               <TableColumn fx:id="relations_userId" text="ID"/>
+               <TableColumn fx:id="relations_groupId" text="ID группы"/>
+               <TableColumn fx:id="relations_addedAt" text="Добавлен"/>
+         </columns>
+      </TableView>
+      <VBox prefWidth="300">
+         <children>
+            <HBox>
+               <Button fx:id="create_group" text="create_group" onAction="#createGroup" />
+               <Button fx:id="add_user" text="add_user" onAction="#addUser" />
+            </HBox>
+            <TextArea fx:id="out" editable="false" wrapText="true"
+                     prefHeight="700" prefWidth="400"
+                     maxHeight="700"/>
+         </children>
+      </VBox>
+</HBox>
